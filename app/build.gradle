@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
+    id 'io.realm.kotlin'
 }
 
 android {
@@ -64,24 +65,24 @@ dependencies {
 
     implementation('androidx.hilt:hilt-navigation-compose:1.0.0')
     implementation("com.google.dagger:hilt-android:$hilt_version")
-    kapt "com.google.dagger:hilt-compiler:$hilt_version"
+    kapt("com.google.dagger:hilt-compiler:$hilt_version")
 
-    runtimeOnly('io.realm:realm-gradle-plugin:10.11.1')
+    implementation("io.realm.kotlin:library-base:0.10.0")
 
-    implementation platform('com.google.firebase:firebase-bom:28.4.2')
-    implementation 'com.google.firebase:firebase-analytics-ktx'
-    implementation 'com.google.firebase:firebase-auth-ktx'
-    implementation 'com.google.firebase:firebase-firestore-ktx'
-    implementation 'com.google.firebase:firebase-storage-ktx:20.0.1'
+    implementation platform("com.google.firebase:firebase-bom:28.4.2")
+    implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-storage-ktx:20.0.1")
     runtimeOnly("com.google.gms:google-services:4.3.13")
 
     testImplementation "io.mockk:mockk:1.12.4"
     androidTestImplementation "io.mockk:mockk-android:1.12.4"
 
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
-    androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
-    debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
-    debugImplementation "androidx.compose.ui:ui-test-manifest:$compose_version"
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test.ext:junit:1.1.3")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:$compose_version")
+    debugImplementation("androidx.compose.ui:ui-tooling:$compose_version")
+    debugImplementation("androidx.compose.ui:ui-test-manifest:$compose_version")
 }
