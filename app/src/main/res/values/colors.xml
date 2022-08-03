@@ -9,7 +9,8 @@
     <color name="primaryLightColorNight">#cb9b8c</color>
     <color name="primaryDarkColorNight">#ffffee</color>
 
-    <color name="transparent">#FFFFFFFFFF</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+
 </resources>
