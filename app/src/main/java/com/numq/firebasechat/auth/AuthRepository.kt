@@ -1,0 +1,12 @@
+package com.numq.firebasechat.auth
+
+import arrow.core.Either
+import kotlinx.coroutines.flow.Flow
+
+interface AuthRepository {
+    val authenticationState: Either<Exception, Boolean>
+    val authenticationId: Either<Exception, Flow<String?>>
+    suspend fun signInByEmail(email: String, password: String): Either<Exception, String>
+    suspend fun signUpByEmail(email: String, password: String): Either<Exception, String>
+    suspend fun signOut(): Either<Exception, Unit>
+}

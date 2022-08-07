@@ -1,9 +1,10 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
-    id 'kotlin-kapt'
     id 'dagger.hilt.android.plugin'
+    id 'com.google.gms.google-services'
     id 'io.realm.kotlin'
+    id 'kotlin-kapt'
 }
 
 android {
@@ -64,7 +65,7 @@ dependencies {
 
     implementation("io.arrow-kt:arrow-core:1.1.2")
 
-    implementation('androidx.hilt:hilt-navigation-compose:1.0.0')
+    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
     implementation("com.google.dagger:hilt-android:$hilt_version")
     kapt("com.google.dagger:hilt-compiler:$hilt_version")
 
@@ -75,7 +76,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-firestore-ktx")
     implementation("com.google.firebase:firebase-storage-ktx:20.0.1")
-    runtimeOnly("com.google.gms:google-services:4.3.13")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.4")
 
     testImplementation "io.mockk:mockk:1.12.4"
     androidTestImplementation "io.mockk:mockk-android:1.12.4"

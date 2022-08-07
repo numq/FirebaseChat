@@ -12,7 +12,7 @@ abstract class UseCase<in T, R> {
     private val coroutineContext = Dispatchers.Main + Job()
     private val coroutineScope = CoroutineScope(coroutineContext)
 
-    abstract fun execute(arg: T): Either<Exception, R>
+    abstract suspend fun execute(arg: T): Either<Exception, R>
 
     operator fun invoke(arg: T, onResult: (Either<Exception, R>) -> Unit) {
         coroutineScope.launch {
