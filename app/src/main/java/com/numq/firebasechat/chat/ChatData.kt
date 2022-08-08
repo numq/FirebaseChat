@@ -3,7 +3,6 @@ package com.numq.firebasechat.chat
 import arrow.core.leftIfNull
 import com.numq.firebasechat.mapper.chat
 import com.numq.firebasechat.wrapper.wrap
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.mapNotNull
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -15,8 +14,8 @@ class ChatData @Inject constructor(
 
     override suspend fun getChats(userId: String, limit: Long) =
         chatService.getChats(userId, limit)
+            .mapNotNull { it.chat }
             .wrap()
-            .map { it.asFlow().mapNotNull { document -> document.chat } }
             .leftIfNull { ChatException }
 
     override suspend fun getChatById(id: String) =

@@ -9,7 +9,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -43,8 +42,10 @@ class SearchViewModel @Inject constructor(
             getUsersByQuery.invoke(Pair(query, DEFAULT_LIMIT)) { data ->
                 data.fold(onError) { users ->
                     viewModelScope.launch {
-                        _state.update {
-                            SearchState(searchResults = users.toList())
+                        users.collect { user ->
+                            _state.update {
+                                SearchState(searchResults = it.searchResults.plus(user).distinct())
+                            }
                         }
                     }
                 }

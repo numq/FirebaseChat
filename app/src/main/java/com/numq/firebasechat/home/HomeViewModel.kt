@@ -4,17 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.numq.firebasechat.auth.GetAuthenticationId
 import com.numq.firebasechat.auth.SignOut
-import com.numq.firebasechat.chat.Chat
 import com.numq.firebasechat.chat.CreateChat
 import com.numq.firebasechat.chat.GetChatById
 import com.numq.firebasechat.chat.GetChats
 import com.numq.firebasechat.user.GetUserById
-import com.numq.firebasechat.user.UpdateLastActiveChatId
+import com.numq.firebasechat.user.UpdateLastActiveChat
 import com.numq.firebasechat.user.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,7 +23,7 @@ class HomeViewModel @Inject constructor(
     private val getUserById: GetUserById,
     private val getChatById: GetChatById,
     private val getChats: GetChats,
-    private val updateLastActiveChatId: UpdateLastActiveChatId,
+    private val updateLastActiveChat: UpdateLastActiveChat,
     private val createChat: CreateChat,
     private val signOut: SignOut
 ) : ViewModel() {
@@ -35,63 +33,60 @@ class HomeViewModel @Inject constructor(
 
     private val DEFAULT_LIMIT = 10L
 
-    private fun observeCurrentUser() = getAuthenticationId.invoke(Unit) { data ->
-        data.fold(onError) {
-            viewModelScope.launch {
-                it.collect { id ->
-                    id?.let {
-                        getUserById.invoke(id) { data ->
-                            data.fold(onError) { user ->
-                                _state.update {
-                                    it.copy(currentUser = user)
+    private fun observeCurrentUser(onUser: (User) -> Unit) =
+        getAuthenticationId.invoke(Unit) { data ->
+            data.fold(onError) {
+                viewModelScope.launch {
+                    it.collect { id ->
+                        id?.let {
+                            getUserById.invoke(id) { data ->
+                                data.fold(onError) { user ->
+                                    _state.update {
+                                        it.copy(currentUser = user)
+                                    }
+                                    onUser(user)
                                 }
                             }
+                        } ?: _state.update {
+                            it.copy(currentUser = null)
                         }
-                    } ?: _state.update {
-                        it.copy(currentUser = null)
                     }
                 }
             }
         }
-    }
 
-    private fun observeActiveChat() = state.value.currentUser?.lastActiveChatId?.let { id ->
-        getChatById.invoke(id) { data ->
-            data.fold(onError) { chat ->
-                _state.update {
-                    it.copy(activeChat = chat)
-                }
+    private fun observeActiveChat(chatId: String) = getChatById.invoke(chatId) { data ->
+        data.fold(onError) { chat ->
+            _state.update {
+                it.copy(activeChat = chat)
             }
         }
-    } ?: _state.update {
-        it.copy(activeChat = null)
     }
 
-    private fun observeChats() = state.value.currentUser?.id?.let { id ->
-        getChats.invoke(Pair(id, DEFAULT_LIMIT)) { data ->
+    private fun observeChats(userId: String) =
+        getChats.invoke(Pair(userId, DEFAULT_LIMIT)) { data ->
             data.fold(onError) { chats ->
                 viewModelScope.launch {
-                    _state.update {
-                        it.copy(chats = chats.toList())
+                    chats.collect { chat ->
+                        _state.update {
+                            it.copy(chats = it.chats.plus(chat).distinct())
+                        }
                     }
                 }
             }
         }
-    }
 
     init {
-        observeCurrentUser()
-        observeActiveChat()
-        observeChats()
-    }
-
-    fun updateLastActiveChatId(user: User, chat: Chat) = updateLastActiveChatId(user) { data ->
-        data.fold(onError) { user ->
-            _state.update {
-                it.copy(currentUser = user.copy(lastActiveChatId = chat.id))
-            }
+        observeCurrentUser { user ->
+            user.lastActiveChatId?.let { observeActiveChat(it) }
+            observeChats(user.id)
         }
     }
+
+    fun updateLastActiveChat(userId: String, chatId: String) =
+        updateLastActiveChat.invoke(Pair(userId, chatId)) { data ->
+            data.fold(onError) {}
+        }
 
     fun createChat(userId: String, anotherId: String) =
         createChat.invoke(Pair(userId, anotherId)) { data ->

@@ -3,20 +3,19 @@ package com.numq.firebasechat.user
 import arrow.core.leftIfNull
 import com.numq.firebasechat.mapper.user
 import com.numq.firebasechat.wrapper.wrap
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.mapNotNull
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class UserData @Inject constructor(
-    private val userService: UserService
+    private val userService: UserApi
 ) : UserRepository {
 
     override suspend fun getUsersByQuery(query: String, limit: Long) =
         userService.getUsersByQuery(query, limit)
+            .mapNotNull { it.user }
             .wrap()
-            .map { it.asFlow().mapNotNull { document -> document.user } }
             .leftIfNull { UserException }
 
     override suspend fun getUserById(id: String) =
@@ -24,6 +23,11 @@ class UserData @Inject constructor(
             .wrap()
             .map { it.user }
             .leftIfNull { UserException }
+
+    override suspend fun updateLastActiveChat(
+        userId: String,
+        chatId: String
+    ) = userService.updateLastActiveChat(userId, chatId).wrap().map { Unit }
 
     override suspend fun updateUser(user: User) =
         userService.updateUser(user)

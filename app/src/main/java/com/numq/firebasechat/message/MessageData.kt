@@ -1,22 +1,23 @@
 package com.numq.firebasechat.message
 
 import arrow.core.leftIfNull
+import com.numq.firebasechat.chat.ChatApi
 import com.numq.firebasechat.mapper.message
 import com.numq.firebasechat.wrapper.wrap
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.mapNotNull
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class MessageData @Inject constructor(
-    private val messageService: MessageApi
+    private val messageService: MessageApi,
+    private val chatService: ChatApi
 ) : MessageRepository {
 
     override suspend fun getMessages(chatId: String, limit: Long) =
         messageService.getMessages(chatId, limit)
+            .mapNotNull { it.message }
             .wrap()
-            .map { it.asFlow().mapNotNull { document -> document.message } }
             .leftIfNull { MessageException }
 
     override suspend fun getMessageById(id: String) =
@@ -28,6 +29,7 @@ class MessageData @Inject constructor(
     override suspend fun createMessage(chatId: String, userId: String, text: String) =
         messageService.createMessage(chatId, userId, text)
             .wrap()
+            .tap { it.message?.let { message -> chatService.updateLastMessage(chatId, message) } }
             .map { true }
 
     override suspend fun updateMessage(id: String, text: String) =

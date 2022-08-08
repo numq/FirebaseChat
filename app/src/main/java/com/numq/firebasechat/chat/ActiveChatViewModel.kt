@@ -4,12 +4,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.numq.firebasechat.message.GetMessages
 import com.numq.firebasechat.message.SendMessage
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@HiltViewModel
 class ActiveChatViewModel @Inject constructor(
     private val getMessages: GetMessages,
     private val sendMessage: SendMessage
@@ -20,29 +22,25 @@ class ActiveChatViewModel @Inject constructor(
 
     private val DEFAULT_LIMIT = 10L
 
-    private fun observeMessages() = state.value.chat?.let { chat ->
-        getMessages.invoke(Pair(chat.id, DEFAULT_LIMIT)) { data ->
+    fun observeMessages(chatId: String) {
+        getMessages.invoke(Pair(chatId, DEFAULT_LIMIT)) { data ->
             data.fold(onError) { messages ->
                 viewModelScope.launch {
                     messages.collect { message ->
                         _state.update {
-                            it.copy(messages = it.messages.plus(message))
+                            it.copy(messages = it.messages.plus(message).distinct())
                         }
                     }
                 }
             }
         }
-    } ?: _state.update {
-        it.copy(messages = emptyList())
     }
 
-    init {
-        observeMessages()
-    }
-
-    fun sendMessage(chatId: String, userId: String, text: String) =
+    fun sendMessage(chatId: String, userId: String, text: String, onMessageSent: () -> Unit) =
         sendMessage.invoke(Triple(chatId, userId, text)) { data ->
-            data.fold(onError) {}
+            data.fold(onError) {
+                if (it) onMessageSent()
+            }
         }
 
     private val onError: (Exception) -> Unit = { exception ->

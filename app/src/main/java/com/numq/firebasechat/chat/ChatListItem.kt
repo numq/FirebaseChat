@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.numq.firebasechat.message.MessageItem
 
 @Composable
-fun ChatItem(chat: Chat, onItemClick: (Chat) -> Unit) {
+fun ChatListItem(chat: Chat, onItemClick: (Chat) -> Unit) {
     Card {
         Column(
             Modifier

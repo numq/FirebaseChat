@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.numq.firebasechat.chat.ActiveChatScreen
 import com.numq.firebasechat.chat.Chat
-import com.numq.firebasechat.chat.ChatItem
+import com.numq.firebasechat.chat.ChatListItem
 import com.numq.firebasechat.error.ShowError
 import com.numq.firebasechat.home.dialog.SignOutDialog
 import com.numq.firebasechat.home.drawer.Drawer
@@ -64,7 +64,7 @@ fun HomeScreen(
                 vm.createChat(user.id, it.id)
             },
             updateActiveChat = { chat ->
-                vm.updateLastActiveChatId(user, chat)
+                vm.updateLastActiveChat(user.id, chat.id)
             },
             signOut = {
                 vm.signOut(navigateToAuth)
@@ -123,21 +123,21 @@ fun BuildHome(
                         }) {
                             Icon(Icons.Rounded.Menu, "open menu")
                         }
-                    }, actions = {
-                        IconButton(onClick = {
-                            setIsSearching(true)
-                        }) {
-                            Icon(Icons.Rounded.Search, "search users")
-                        }
                     })
-            }) { paddingValues ->
+            }, floatingActionButton = {
+                IconButton(onClick = {
+                    setIsSearching(true)
+                }) {
+                    Icon(Icons.Rounded.Search, "search users")
+                }
+            }, floatingActionButtonPosition = FabPosition.Center) { paddingValues ->
                 LazyColumn(
                     Modifier
                         .fillMaxSize()
                         .padding(paddingValues)
                 ) {
                     items(chats) { chat ->
-                        ChatItem(chat, updateActiveChat)
+                        ChatListItem(chat, updateActiveChat)
                     }
                 }
                 activeChat?.let {

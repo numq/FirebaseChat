@@ -22,15 +22,21 @@ fun SearchScreen(
     scaffoldState: ScaffoldState,
     vm: SearchViewModel = hiltViewModel(),
     onItemClick: (User) -> Unit,
-    onBackPressed: () -> Unit
+    onCloseSearch: () -> Unit
 ) {
 
-    BackHandler { vm.cleanUpState();onBackPressed() }
+    BackHandler { onCloseSearch() }
 
     val state by vm.state.collectAsState()
 
     LaunchedEffect(Unit) {
         Log.e("SEARCH", state.toString())
+    }
+
+    DisposableEffect(vm) {
+        onDispose {
+            vm.cleanUpState()
+        }
     }
 
     state.exception?.let {
@@ -68,7 +74,10 @@ fun SearchScreen(
         }, modifier = Modifier.fillMaxWidth())
         LazyColumn(Modifier.weight(1f)) {
             items(state.searchResults) { item ->
-                SearchItem(item, onItemClick)
+                SearchItem(item) {
+                    onCloseSearch()
+                    onItemClick(it)
+                }
             }
         }
     }

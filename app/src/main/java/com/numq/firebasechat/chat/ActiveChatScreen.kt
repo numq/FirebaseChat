@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
@@ -30,15 +31,28 @@ fun ActiveChatScreen(
 
     val state by vm.state.collectAsState()
 
+    val (justOpened, setJustOpened) = remember {
+        mutableStateOf(true)
+    }
+
+    val justOpenedAnimation: Dp by animateDpAsState(
+        if (justOpened) maxWidth else 0.dp
+    )
+
     LaunchedEffect(Unit) {
         Log.e("CHAT", state.toString())
+        setJustOpened(false)
+    }
+
+    LaunchedEffect(chat.id) {
+        vm.observeMessages(chat.id)
     }
 
     val (isCollapsed, setIsCollapsed) = remember {
-        mutableStateOf(false)
+        mutableStateOf(justOpened)
     }
 
-    val offsetAnimation: Dp by animateDpAsState(
+    val collapseAnimation: Dp by animateDpAsState(
         if (isCollapsed) (maxWidth - 50.dp) else 0.dp
     )
 
@@ -46,12 +60,14 @@ fun ActiveChatScreen(
         mutableStateOf("")
     }
 
+    val messagesState = rememberLazyListState()
+
     BoxWithConstraints {
         Card(
             modifier = Modifier
                 .fillMaxSize()
                 .clipToBounds()
-                .absoluteOffset(x = offsetAnimation)
+                .absoluteOffset(x = if (justOpened) justOpenedAnimation else collapseAnimation)
         ) {
             BoxWithConstraints(
                 modifier = if (isCollapsed) Modifier.clickable {
@@ -66,7 +82,7 @@ fun ActiveChatScreen(
                                 if (!isCollapsed) {
                                     setIsCollapsed(true)
                                 }
-                            }) {
+                            }, enabled = !isCollapsed) {
                                 Icon(
                                     Icons.Rounded.ArrowBack,
                                     "collapse chat"
@@ -79,29 +95,41 @@ fun ActiveChatScreen(
                             .fillMaxSize()
                             .padding(paddingValues),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.SpaceBetween
+                        verticalArrangement = Arrangement.Bottom
                     ) {
-                        Box(
-                            modifier = Modifier.weight(1f),
-                            contentAlignment = Alignment.BottomCenter
+                        LazyColumn(
+                            Modifier.weight(1f),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Bottom,
+                            state = messagesState
                         ) {
-                            LazyColumn(Modifier.fillMaxWidth(), reverseLayout = true) {
-                                items(state.messages) { message ->
-                                    MessageItem(message)
+                            items(state.messages) { message ->
+                                MessageItem(message)
+                            }
+                            item {
+                                LaunchedEffect(Unit) {
+                                    messagesState.animateScrollToItem(state.messages.size)
                                 }
                             }
                         }
                         Row(
                             Modifier
                                 .fillMaxWidth()
-                                .padding(4.dp)
+                                .padding(4.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            TextField(value = messageText, onValueChange = {
-                                setMessageText(it)
-                            }, Modifier.weight(1f))
+                            TextField(
+                                value = messageText, onValueChange = {
+                                    setMessageText(it)
+                                },
+                                Modifier.weight(1f)
+                            )
                             IconButton(onClick = {
-                                vm.sendMessage(chat.id, currentUser.id, messageText)
-                            }) {
+                                vm.sendMessage(chat.id, currentUser.id, messageText) {
+                                    setMessageText("")
+                                }
+                            }, enabled = messageText.isNotEmpty()) {
                                 Icon(Icons.Rounded.Send, "send message")
                             }
                         }
