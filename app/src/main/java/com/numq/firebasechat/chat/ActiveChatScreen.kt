@@ -1,6 +1,7 @@
 package com.numq.firebasechat.chat
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -52,6 +53,10 @@ fun ActiveChatScreen(
         mutableStateOf(justOpened)
     }
 
+    BackHandler(!isCollapsed) {
+        setIsCollapsed(true)
+    }
+
     val collapseAnimation: Dp by animateDpAsState(
         if (isCollapsed) (maxWidth - 50.dp) else 0.dp
     )
@@ -69,10 +74,9 @@ fun ActiveChatScreen(
                 .clipToBounds()
                 .absoluteOffset(x = if (justOpened) justOpenedAnimation else collapseAnimation)
         ) {
-            BoxWithConstraints(
-                modifier = if (isCollapsed) Modifier.clickable {
-                    setIsCollapsed(false)
-                } else Modifier) {
+            BoxWithConstraints(modifier = if (isCollapsed) Modifier.clickable {
+                setIsCollapsed(false)
+            } else Modifier) {
                 Scaffold(
                     topBar = {
                         TopAppBar(title = {
@@ -122,14 +126,14 @@ fun ActiveChatScreen(
                             TextField(
                                 value = messageText, onValueChange = {
                                     setMessageText(it)
-                                },
-                                Modifier.weight(1f)
+                                }, enabled = !isCollapsed,
+                                modifier = Modifier.weight(1f)
                             )
                             IconButton(onClick = {
                                 vm.sendMessage(chat.id, currentUser.id, messageText) {
                                     setMessageText("")
                                 }
-                            }, enabled = messageText.isNotEmpty()) {
+                            }, enabled = messageText.isNotEmpty() && !isCollapsed) {
                                 Icon(Icons.Rounded.Send, "send message")
                             }
                         }
