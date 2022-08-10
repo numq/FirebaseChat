@@ -86,6 +86,10 @@ fun BuildHome(
     signOut: () -> Unit
 ) {
 
+    val (isActiveChatCollapsed, setIsActiveChatCollapsed) = remember {
+        mutableStateOf(false)
+    }
+
     val (signOutVisible, setSignOutVisible) = remember {
         mutableStateOf(false)
     }
@@ -137,7 +141,11 @@ fun BuildHome(
                         .padding(paddingValues)
                 ) {
                     items(chats) { chat ->
-                        ChatListItem(chat, updateActiveChat)
+                        ChatListItem(
+                            chat,
+                            if (isActiveChatCollapsed) (maxWidth - 50.dp) else 0.dp,
+                            updateActiveChat
+                        )
                     }
                 }
                 activeChat?.let {
@@ -145,7 +153,7 @@ fun BuildHome(
                 }
             }
             activeChat?.let { chat ->
-                ActiveChatScreen(currentUser, chat, maxWidth)
+                ActiveChatScreen(currentUser, chat, maxWidth, setIsActiveChatCollapsed)
             }
             if (signOutVisible) {
                 setIsSearching(false)

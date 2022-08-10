@@ -27,6 +27,7 @@ fun ActiveChatScreen(
     currentUser: User,
     chat: Chat,
     maxWidth: Dp,
+    onCollapseChat: (Boolean) -> Unit,
     vm: ActiveChatViewModel = hiltViewModel()
 ) {
 
@@ -51,6 +52,10 @@ fun ActiveChatScreen(
 
     val (isCollapsed, setIsCollapsed) = remember {
         mutableStateOf(justOpened)
+    }
+
+    LaunchedEffect(isCollapsed) {
+        onCollapseChat(isCollapsed)
     }
 
     BackHandler(!isCollapsed) {
