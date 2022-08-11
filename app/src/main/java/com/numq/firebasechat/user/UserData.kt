@@ -1,6 +1,7 @@
 package com.numq.firebasechat.user
 
 import arrow.core.leftIfNull
+import com.numq.firebasechat.mapper.chat
 import com.numq.firebasechat.mapper.user
 import com.numq.firebasechat.wrapper.wrap
 import kotlinx.coroutines.flow.mapNotNull
@@ -27,7 +28,10 @@ class UserData @Inject constructor(
     override suspend fun updateLastActiveChat(
         userId: String,
         chatId: String
-    ) = userService.updateLastActiveChat(userId, chatId).wrap().map { Unit }
+    ) = userService.updateLastActiveChat(userId, chatId)
+        .wrap()
+        .map { it.chat }
+        .leftIfNull { UserException }
 
     override suspend fun updateUser(user: User) =
         userService.updateUser(user)

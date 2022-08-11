@@ -66,15 +66,15 @@ class ChatService @Inject constructor(
         return collection.document(id).get()
     }
 
-    override fun updateLastMessage(chatId: String, message: Message): Task<DocumentSnapshot> {
-        collection.document(chatId).update("lastMessage", message)
-        return collection.document(chatId).get()
-    }
+    override fun updateLastMessage(chatId: String, message: Message) =
+        collection.document(chatId).update("lastMessage", message).continueWithTask {
+            collection.document(chatId).get()
+        }
 
-    override fun updateChat(chat: Chat): Task<DocumentSnapshot> {
-        collection.document(chat.id).set(chat)
-        return collection.document(chat.id).get()
-    }
+    override fun updateChat(chat: Chat) =
+        collection.document(chat.id).set(chat).continueWithTask {
+            collection.document(chat.id).get()
+        }
 
     override fun deleteChat(id: String) = collection.document(id).delete()
 

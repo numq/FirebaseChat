@@ -8,7 +8,7 @@ interface UserApi {
     fun getUsersByQuery(query: String, limit: Long): Flow<DocumentSnapshot>
     fun getUserById(id: String): Task<DocumentSnapshot>
     fun createUser(id: String, email: String): Task<Void>
-    fun updateLastActiveChat(userId: String, chatId: String): Task<Void>
+    fun updateLastActiveChat(userId: String, chatId: String): Task<DocumentSnapshot>
     fun updateUserActivity(id: String, state: Boolean): Task<Void>
     fun updateUser(user: User): Task<Void>
     fun deleteUser(id: String): Task<Void>

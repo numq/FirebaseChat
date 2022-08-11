@@ -56,7 +56,9 @@ class UserService @Inject constructor(
         )
 
     override fun updateLastActiveChat(userId: String, chatId: String) =
-        collection.document(userId).update("lastActiveChatId", chatId)
+        collection.document(userId).update("lastActiveChatId", chatId).continueWithTask {
+            collection.document(userId).get()
+        }
 
     override fun updateUserActivity(id: String, state: Boolean) = collection.document(id).update(
         "isOnline",

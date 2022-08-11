@@ -56,8 +56,9 @@ class MessageService @Inject constructor(
                     sentAt = System.currentTimeMillis(),
                     updatedAt = null
                 )
-            )
-            collection.document(id).get()
+            ).continueWithTask {
+                collection.document(id).get()
+            }
         }
 
     override fun updateMessage(id: String, text: String) =
