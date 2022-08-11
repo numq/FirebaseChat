@@ -19,7 +19,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.numq.firebasechat.message.MessageItem
+import com.numq.firebasechat.message.MessageChatItem
 import com.numq.firebasechat.user.User
 
 @Composable
@@ -27,7 +27,6 @@ fun ActiveChatScreen(
     currentUser: User,
     chat: Chat,
     maxWidth: Dp,
-    onCollapseChat: (Boolean) -> Unit,
     vm: ActiveChatViewModel = hiltViewModel()
 ) {
 
@@ -41,6 +40,10 @@ fun ActiveChatScreen(
         if (justOpened) maxWidth else 0.dp
     )
 
+    val (chatVisible, setChatVisible) = remember {
+        mutableStateOf(justOpened)
+    }
+
     LaunchedEffect(Unit) {
         Log.e("CHAT", state.toString())
         setJustOpened(false)
@@ -50,20 +53,14 @@ fun ActiveChatScreen(
         vm.observeMessages(chat.id)
     }
 
-    val (isCollapsed, setIsCollapsed) = remember {
-        mutableStateOf(justOpened)
+    BackHandler(!chatVisible) {
+        setChatVisible(false)
     }
 
-    LaunchedEffect(isCollapsed) {
-        onCollapseChat(isCollapsed)
-    }
-
-    BackHandler(!isCollapsed) {
-        setIsCollapsed(true)
-    }
+    val offset = 50.dp
 
     val collapseAnimation: Dp by animateDpAsState(
-        if (isCollapsed) (maxWidth - 50.dp) else 0.dp
+        if (chatVisible) 0.dp else (maxWidth - offset)
     )
 
     val (messageText, setMessageText) = remember {
@@ -79,22 +76,22 @@ fun ActiveChatScreen(
                 .clipToBounds()
                 .absoluteOffset(x = if (justOpened) justOpenedAnimation else collapseAnimation)
         ) {
-            BoxWithConstraints(modifier = if (isCollapsed) Modifier.clickable {
-                setIsCollapsed(false)
-            } else Modifier) {
+            BoxWithConstraints(modifier = if (chatVisible) Modifier else Modifier.clickable {
+                setChatVisible(true)
+            }) {
                 Scaffold(
                     topBar = {
                         TopAppBar(title = {
                             Text(chat.name)
                         }, navigationIcon = {
                             IconButton(onClick = {
-                                if (!isCollapsed) {
-                                    setIsCollapsed(true)
+                                if (chatVisible) {
+                                    setChatVisible(false)
                                 }
-                            }, enabled = !isCollapsed) {
+                            }, enabled = chatVisible) {
                                 Icon(
                                     Icons.Rounded.ArrowBack,
-                                    "collapse chat"
+                                    "close chat"
                                 )
                             }
                         })
@@ -113,7 +110,7 @@ fun ActiveChatScreen(
                             state = messagesState
                         ) {
                             items(state.messages) { message ->
-                                MessageItem(message)
+                                MessageChatItem(currentUser, message, maxWidth)
                             }
                             item {
                                 LaunchedEffect(Unit) {
@@ -131,14 +128,14 @@ fun ActiveChatScreen(
                             TextField(
                                 value = messageText, onValueChange = {
                                     setMessageText(it)
-                                }, enabled = !isCollapsed,
+                                }, enabled = chatVisible,
                                 modifier = Modifier.weight(1f)
                             )
                             IconButton(onClick = {
                                 vm.sendMessage(chat.id, currentUser.id, messageText) {
                                     setMessageText("")
                                 }
-                            }, enabled = messageText.isNotEmpty() && !isCollapsed) {
+                            }, enabled = messageText.isNotEmpty() && chatVisible) {
                                 Icon(Icons.Rounded.Send, "send message")
                             }
                         }

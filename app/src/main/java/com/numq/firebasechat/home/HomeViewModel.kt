@@ -85,7 +85,7 @@ class HomeViewModel @Inject constructor(
 
     fun updateLastActiveChat(userId: String, chatId: String) =
         updateLastActiveChat.invoke(Pair(userId, chatId)) { data ->
-            data.fold(onError) {}
+            data.fold(onError) { }
         }
 
     fun createChat(userId: String, anotherId: String) =

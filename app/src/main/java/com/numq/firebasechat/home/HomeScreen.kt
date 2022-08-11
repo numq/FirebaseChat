@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.firebase.auth.FirebaseAuthException
 import com.numq.firebasechat.chat.ActiveChatScreen
 import com.numq.firebasechat.chat.Chat
 import com.numq.firebasechat.chat.ChatListItem
@@ -30,7 +31,6 @@ import com.numq.firebasechat.home.drawer.Drawer
 import com.numq.firebasechat.home.drawer.DrawerArticle
 import com.numq.firebasechat.search.SearchScreen
 import com.numq.firebasechat.user.User
-import com.numq.firebasechat.user.UserException
 
 @Composable
 fun HomeScreen(
@@ -47,7 +47,7 @@ fun HomeScreen(
 
     state.exception?.let {
         when (it) {
-            is UserException -> LaunchedEffect(Unit) {
+            is FirebaseAuthException -> LaunchedEffect(Unit) {
                 vm.signOut(navigateToAuth)
             }
             else -> ShowError(scaffoldState, it, vm.cleanUpError)
@@ -64,13 +64,11 @@ fun HomeScreen(
                 vm.createChat(user.id, it.id)
             },
             updateActiveChat = { chat ->
-                vm.updateLastActiveChat(user.id, chat.id)
+                if (chat.id != user.lastActiveChatId) vm.updateLastActiveChat(user.id, chat.id)
             },
             signOut = {
                 vm.signOut(navigateToAuth)
             })
-    } ?: LaunchedEffect(Unit) {
-        navigateToAuth()
     }
 
 }
@@ -85,10 +83,6 @@ fun BuildHome(
     updateActiveChat: (Chat) -> Unit,
     signOut: () -> Unit
 ) {
-
-    val (isActiveChatCollapsed, setIsActiveChatCollapsed) = remember {
-        mutableStateOf(false)
-    }
 
     val (signOutVisible, setSignOutVisible) = remember {
         mutableStateOf(false)
@@ -142,8 +136,9 @@ fun BuildHome(
                 ) {
                     items(chats) { chat ->
                         ChatListItem(
+                            currentUser,
                             chat,
-                            if (isActiveChatCollapsed) (maxWidth - 50.dp) else 0.dp,
+                            maxWidth - 50.dp,
                             updateActiveChat
                         )
                     }
@@ -153,7 +148,11 @@ fun BuildHome(
                 }
             }
             activeChat?.let { chat ->
-                ActiveChatScreen(currentUser, chat, maxWidth, setIsActiveChatCollapsed)
+                ActiveChatScreen(
+                    currentUser,
+                    chat,
+                    maxWidth
+                )
             }
             if (signOutVisible) {
                 setIsSearching(false)
