@@ -14,8 +14,8 @@ class MessageData @Inject constructor(
     private val chatService: ChatApi
 ) : MessageRepository {
 
-    override suspend fun getMessages(chatId: String, limit: Long) =
-        messageService.getMessages(chatId, limit)
+    override suspend fun getMessages(chatId: String, skip: Long, limit: Long) =
+        messageService.getMessages(chatId, skip, limit)
             .mapNotNull { it.message }
             .wrap()
             .leftIfNull { MessageException }

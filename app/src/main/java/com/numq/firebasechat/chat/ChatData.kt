@@ -12,8 +12,8 @@ class ChatData @Inject constructor(
     private val chatService: ChatApi
 ) : ChatRepository {
 
-    override suspend fun getChats(userId: String, limit: Long) =
-        chatService.getChats(userId, limit)
+    override suspend fun getChats(userId: String, skip: Long, limit: Long) =
+        chatService.getChats(userId, skip, limit)
             .mapNotNull { it.chat }
             .wrap()
             .leftIfNull { ChatException }

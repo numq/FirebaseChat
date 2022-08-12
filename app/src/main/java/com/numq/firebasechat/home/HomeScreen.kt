@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Menu
@@ -21,6 +20,9 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.items
 import com.google.firebase.auth.FirebaseAuthException
 import com.numq.firebasechat.chat.ActiveChatScreen
 import com.numq.firebasechat.chat.Chat
@@ -55,10 +57,11 @@ fun HomeScreen(
     }
 
     state.currentUser?.let { user ->
+        val chats = vm.createPagingSource(user.id).collectAsLazyPagingItems()
         BuildHome(
             scaffoldState,
             currentUser = user,
-            chats = state.chats,
+            chats = chats,
             activeChat = state.activeChat,
             createChat = {
                 vm.createChat(user.id, it.id)
@@ -77,7 +80,7 @@ fun HomeScreen(
 fun BuildHome(
     scaffoldState: ScaffoldState,
     currentUser: User,
-    chats: List<Chat>,
+    chats: LazyPagingItems<Chat>,
     activeChat: Chat?,
     createChat: (User) -> Unit,
     updateActiveChat: (Chat) -> Unit,
@@ -135,12 +138,14 @@ fun BuildHome(
                         .padding(paddingValues)
                 ) {
                     items(chats) { chat ->
-                        ChatListItem(
-                            currentUser,
-                            chat,
-                            maxWidth - 50.dp,
-                            updateActiveChat
-                        )
+                        if (chat != null) {
+                            ChatListItem(
+                                currentUser,
+                                chat,
+                                maxWidth - 50.dp,
+                                updateActiveChat
+                            )
+                        }
                     }
                 }
                 activeChat?.let {

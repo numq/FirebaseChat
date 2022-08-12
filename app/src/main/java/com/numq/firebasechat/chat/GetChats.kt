@@ -7,9 +7,9 @@ import javax.inject.Inject
 
 class GetChats @Inject constructor(
     private val repository: ChatRepository
-) : UseCase<Pair<String, Long>, Flow<Chat>>() {
-    override suspend fun execute(arg: Pair<String, Long>): Either<Exception, Flow<Chat>> {
-        val (userId, limit) = arg
-        return repository.getChats(userId, limit)
+) : UseCase<Triple<String, Long, Long>, Flow<Chat>>() {
+    override suspend fun execute(arg: Triple<String, Long, Long>): Either<Exception, Flow<Chat>> {
+        val (userId, offset, limit) = arg
+        return repository.getChats(userId, offset, limit)
     }
 }

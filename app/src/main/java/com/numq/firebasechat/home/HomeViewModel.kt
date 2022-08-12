@@ -2,17 +2,18 @@ package com.numq.firebasechat.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import com.numq.firebasechat.auth.GetAuthenticationId
 import com.numq.firebasechat.auth.SignOut
-import com.numq.firebasechat.chat.CreateChat
-import com.numq.firebasechat.chat.GetChatById
-import com.numq.firebasechat.chat.GetChats
+import com.numq.firebasechat.chat.*
 import com.numq.firebasechat.user.GetUserById
 import com.numq.firebasechat.user.UpdateLastActiveChat
 import com.numq.firebasechat.user.User
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -30,8 +31,6 @@ class HomeViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(HomeState())
     val state = _state.asStateFlow()
-
-    private val DEFAULT_LIMIT = 10L
 
     private fun observeCurrentUser(onUser: (User) -> Unit) =
         getAuthenticationId.invoke(Unit) { data ->
@@ -63,23 +62,28 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun observeChats(userId: String) =
-        getChats.invoke(Pair(userId, DEFAULT_LIMIT)) { data ->
-            data.fold(onError) { chats ->
-                viewModelScope.launch {
-                    chats.collect { chat ->
-                        _state.update {
-                            it.copy(chats = it.chats.plus(chat).distinct())
+    private val defaultLimit = 20L
+
+    fun createPagingSource(userId: String) = Pager(PagingConfig(defaultLimit.toInt())) {
+        val result = mutableListOf<Chat>()
+        ChatPagingSource(defaultLimit.toInt()) { offset, limit ->
+            getChats.invoke(Triple(userId, offset.toLong(), limit.toLong())) { data ->
+                data.fold(onError) { chats ->
+                    viewModelScope.launch {
+                        result.apply {
+                            clear()
+                            addAll(chats.toList())
                         }
                     }
                 }
             }
+            result
         }
+    }.flow
 
     init {
         observeCurrentUser { user ->
             user.lastActiveChatId?.let { observeActiveChat(it) }
-            observeChats(user.id)
         }
     }
 

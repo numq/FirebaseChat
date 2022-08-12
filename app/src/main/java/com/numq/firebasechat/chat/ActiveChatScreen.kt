@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -19,6 +18,8 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.items
 import com.numq.firebasechat.message.MessageChatItem
 import com.numq.firebasechat.user.User
 
@@ -31,6 +32,8 @@ fun ActiveChatScreen(
 ) {
 
     val state by vm.state.collectAsState()
+
+    val messages = vm.createPagingSource(chat.id).collectAsLazyPagingItems()
 
     val (justOpened, setJustOpened) = remember {
         mutableStateOf(true)
@@ -47,10 +50,6 @@ fun ActiveChatScreen(
     LaunchedEffect(Unit) {
         Log.e("CHAT", state.toString())
         setJustOpened(false)
-    }
-
-    LaunchedEffect(chat.id) {
-        vm.observeMessages(chat.id)
     }
 
     BackHandler(!chatVisible) {
@@ -109,12 +108,14 @@ fun ActiveChatScreen(
                             verticalArrangement = Arrangement.Bottom,
                             state = messagesState
                         ) {
-                            items(state.messages) { message ->
-                                MessageChatItem(currentUser, message, maxWidth)
+                            items(messages) { message ->
+                                if (message != null) {
+                                    MessageChatItem(currentUser, message, maxWidth)
+                                }
                             }
                             item {
                                 LaunchedEffect(Unit) {
-                                    messagesState.animateScrollToItem(state.messages.size)
+                                    messagesState.animateScrollToItem(messages.itemCount)
                                 }
                             }
                         }

@@ -6,7 +6,7 @@ import com.numq.firebasechat.message.Message
 import kotlinx.coroutines.flow.Flow
 
 interface ChatApi {
-    fun getChats(userId: String, limit: Long): Flow<DocumentSnapshot>
+    fun getChats(userId: String, skip: Long, limit: Long): Flow<DocumentSnapshot>
     fun getChatById(id: String): Task<DocumentSnapshot>
     fun createChat(userId: String, anotherId: String): Task<DocumentSnapshot>
     fun updateChat(chat: Chat): Task<DocumentSnapshot>

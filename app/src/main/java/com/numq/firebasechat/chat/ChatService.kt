@@ -28,13 +28,13 @@ class ChatService @Inject constructor(
 
     private val collection = firestore.collection(CHATS)
 
-    override fun getChats(userId: String, limit: Long) = callbackFlow {
+    override fun getChats(userId: String, skip: Long, limit: Long) = callbackFlow {
         val subscription = collection.whereArrayContains("userIds", userId)
             .orderBy("updatedAt", Query.Direction.DESCENDING)
             .limit(limit).addSnapshotListener { value, error ->
                 error?.let { throw error }
                 coroutineScope.launch {
-                    value?.documents?.forEach {
+                    value?.documents?.drop(skip.toInt())?.forEach {
                         send(it)
                     }
                 }
