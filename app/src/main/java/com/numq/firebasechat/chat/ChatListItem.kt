@@ -33,6 +33,7 @@ fun ChatListItem(user: User, chat: Chat, maxWidth: Dp, onItemClick: (Chat) -> Un
     LaunchedEffect(Unit) {
         Log.e("chat", chat.toString())
     }
+    
     Card(
         Modifier
             .width(maxWidth)

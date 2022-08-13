@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.material.icons.rounded.Send
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -130,7 +131,14 @@ fun ActiveChatScreen(
                                 value = messageText, onValueChange = {
                                     setMessageText(it)
                                 }, enabled = chatVisible,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                trailingIcon = {
+                                    IconButton(onClick = {
+                                        setMessageText("")
+                                    }) {
+                                        Icon(Icons.Rounded.Clear, "clear input")
+                                    }
+                                }
                             )
                             IconButton(onClick = {
                                 vm.sendMessage(chat.id, currentUser.id, messageText) {
