@@ -4,7 +4,6 @@ data class User(
     val id: String = "",
     val email: String = "",
     val name: String? = null,
-    val lastActiveChatId: String? = null,
     val isOnline: Boolean = false,
     val lastSeenAt: Long = System.currentTimeMillis()
 )

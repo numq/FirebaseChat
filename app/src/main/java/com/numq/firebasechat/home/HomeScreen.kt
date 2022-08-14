@@ -66,9 +66,7 @@ fun HomeScreen(
             createChat = {
                 vm.createChat(user.id, it.id)
             },
-            updateActiveChat = { chat ->
-                if (chat.id != user.lastActiveChatId) vm.updateLastActiveChat(user.id, chat.id)
-            },
+            updateActiveChat = vm::updateActiveChat,
             signOut = {
                 vm.signOut(navigateToAuth)
             })
