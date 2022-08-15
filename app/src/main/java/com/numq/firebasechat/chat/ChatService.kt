@@ -19,7 +19,7 @@ class ChatService @Inject constructor(
     firestore: FirebaseFirestore
 ) : ChatApi {
 
-    private val coroutineContext = Dispatchers.Main + Job()
+    private val coroutineContext = Dispatchers.Default + Job()
     private val coroutineScope = CoroutineScope(coroutineContext)
 
     companion object {
@@ -29,6 +29,29 @@ class ChatService @Inject constructor(
     private val collection = firestore.collection(CHATS)
 
     override fun getChats(userId: String, skip: Long, limit: Long) = callbackFlow {
+        var lastDocument: DocumentSnapshot? = null
+        val subscription = collection.whereArrayContains("userIds", userId)
+            .orderBy("updatedAt", Query.Direction.DESCENDING)
+            .limit(limit)
+            .apply {
+                lastDocument?.let {
+                    startAfter(lastDocument)
+                }
+            }.addSnapshotListener { value, error ->
+                error?.let { close(error) }
+                coroutineScope.launch {
+                    value?.documents?.forEach {
+                        send(it)
+                    }
+                    lastDocument = value?.documents?.lastOrNull()
+                }
+            }
+        awaitClose {
+            subscription.remove()
+        }
+    }
+
+    /*override fun getChats(userId: String, skip: Long, limit: Long) = callbackFlow {
         val subscription = collection.whereArrayContains("userIds", userId)
             .orderBy("updatedAt", Query.Direction.DESCENDING)
             .limit(limit).addSnapshotListener { value, error ->
@@ -42,7 +65,7 @@ class ChatService @Inject constructor(
         awaitClose {
             subscription.remove()
         }
-    }
+    }*/
 
     override fun getChatById(id: String) = collection.document(id).get()
 

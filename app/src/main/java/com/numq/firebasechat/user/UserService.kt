@@ -16,7 +16,7 @@ class UserService @Inject constructor(
     firestore: FirebaseFirestore
 ) : UserApi {
 
-    private val coroutineContext = Dispatchers.Main + Job()
+    private val coroutineContext = Dispatchers.Default + Job()
     private val coroutineScope = CoroutineScope(coroutineContext)
 
     companion object {
@@ -29,7 +29,7 @@ class UserService @Inject constructor(
         val subscription = collection.whereEqualTo("email", query)
             .orderBy("lastSeenAt", Query.Direction.DESCENDING)
             .limit(limit).addSnapshotListener { value, error ->
-                error?.let { throw error }
+                error?.let { close(error) }
                 coroutineScope.launch {
                     value?.documents?.forEach {
                         send(it)

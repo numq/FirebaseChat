@@ -1,6 +1,5 @@
 package com.numq.firebasechat.message
 
-import android.util.Log
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -18,7 +17,7 @@ class MessageService @Inject constructor(
     firestore: FirebaseFirestore
 ) : MessageApi {
 
-    private val coroutineContext = Dispatchers.Main + Job()
+    private val coroutineContext = Dispatchers.Default + Job()
     private val coroutineScope = CoroutineScope(coroutineContext)
 
     companion object {
@@ -29,23 +28,23 @@ class MessageService @Inject constructor(
 
     override fun getMessages(chatId: String, skip: Long, limit: Long) = callbackFlow {
         var lastDocument: DocumentSnapshot? = null
-        val subscription =
-            collection.whereEqualTo("chatId", chatId)
-                .orderBy("sentAt", Query.Direction.DESCENDING).apply {
-                    lastDocument?.let {
-                        startAfter(lastDocument)
+        val subscription = collection.whereEqualTo("chatId", chatId)
+            .orderBy("sentAt", Query.Direction.DESCENDING)
+            .limit(limit)
+            .apply {
+                lastDocument?.let {
+                    startAfter(lastDocument)
+                }
+            }
+            .addSnapshotListener { value, error ->
+                error?.let { close(error) }
+                lastDocument = value?.documents?.lastOrNull()
+                coroutineScope.launch {
+                    value?.documents?.forEach() {
+                        send(it)
                     }
                 }
-                .limit(limit)
-                .addSnapshotListener { value, error ->
-                    error?.let { throw error }
-                    lastDocument = value?.documents?.lastOrNull()
-                    coroutineScope.launch {
-                        value?.documents?.forEach() {
-                            send(it)
-                        }
-                    }
-                }
+            }
         awaitClose {
             subscription.remove()
         }
