@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -19,45 +20,30 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.items
 import com.numq.firebasechat.message.MessageChatItem
 import com.numq.firebasechat.user.User
 
 @Composable
 fun ActiveChatScreen(
+    chatVisible: Boolean,
+    setChatVisible: (Boolean) -> Unit,
     currentUser: User,
     chat: Chat,
+    offset: Dp,
     maxWidth: Dp,
     vm: ActiveChatViewModel = hiltViewModel()
 ) {
 
     val state by vm.state.collectAsState()
 
-    val messages = vm.createPagingSource(chat.id).collectAsLazyPagingItems()
-
-    val (justOpened, setJustOpened) = remember {
-        mutableStateOf(true)
-    }
-
-    val justOpenedAnimation: Dp by animateDpAsState(
-        if (justOpened) maxWidth else 0.dp
-    )
-
-    val (chatVisible, setChatVisible) = remember {
-        mutableStateOf(justOpened)
-    }
-
     LaunchedEffect(Unit) {
         Log.e("CHAT", state.toString())
-        setJustOpened(false)
+        vm.observeMessages(chat.id, 0L, 20L)
     }
 
-    BackHandler(!chatVisible) {
+    BackHandler(chatVisible) {
         setChatVisible(false)
     }
-
-    val offset = 50.dp
 
     val collapseAnimation: Dp by animateDpAsState(
         if (chatVisible) 0.dp else (maxWidth - offset)
@@ -74,7 +60,7 @@ fun ActiveChatScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .clipToBounds()
-                .absoluteOffset(x = if (justOpened) justOpenedAnimation else collapseAnimation)
+                .absoluteOffset(x = collapseAnimation)
         ) {
             BoxWithConstraints(modifier = if (chatVisible) Modifier else Modifier.clickable {
                 setChatVisible(true)
@@ -107,17 +93,11 @@ fun ActiveChatScreen(
                             Modifier.weight(1f),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Bottom,
-                            state = messagesState
+                            state = messagesState,
+                            reverseLayout = true
                         ) {
-                            items(messages) { message ->
-                                if (message != null) {
-                                    MessageChatItem(currentUser, message, maxWidth)
-                                }
-                            }
-                            item {
-                                LaunchedEffect(Unit) {
-                                    messagesState.animateScrollToItem(messages.itemCount)
-                                }
+                            items(state.messages) { message ->
+                                MessageChatItem(currentUser, message, maxWidth)
                             }
                         }
                         Row(
