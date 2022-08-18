@@ -2,6 +2,7 @@ package com.numq.firebasechat.user
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -13,7 +14,8 @@ import javax.inject.Singleton
 
 @Singleton
 class UserService @Inject constructor(
-    firestore: FirebaseFirestore
+    firestore: FirebaseFirestore,
+    private val storage: FirebaseStorage
 ) : UserApi {
 
     private val coroutineContext = Dispatchers.Default + Job()
@@ -69,6 +71,15 @@ class UserService @Inject constructor(
             email
         )
     }
+
+    override fun uploadImage(id: String, byteString: String) =
+        storage.reference.child(id).putBytes(byteString.toByteArray()).addOnSuccessListener {
+            collection.document(id).update(
+                "imageUri", it.storage.downloadUrl
+            )
+        }.continueWithTask {
+            collection.document(id).get()
+        }
 
     override fun deleteUser(id: String) = collection.document(id).delete()
 

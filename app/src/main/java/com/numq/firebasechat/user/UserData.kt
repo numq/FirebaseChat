@@ -29,6 +29,12 @@ class UserData @Inject constructor(
             .wrap()
             .map { user }
 
+    override suspend fun uploadImage(id: String, byteString: String) =
+        userService.uploadImage(id, byteString)
+            .wrap()
+            .map { it.user }
+            .leftIfNull { UserException }
+
     override suspend fun deleteUser(id: String) =
         userService.deleteUser(id)
             .wrap()

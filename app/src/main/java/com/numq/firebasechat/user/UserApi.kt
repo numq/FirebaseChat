@@ -10,5 +10,6 @@ interface UserApi {
     fun createUser(id: String, email: String): Task<Void>
     fun updateUserActivity(id: String, state: Boolean): Task<Void>
     fun updateUser(user: User): Task<Void>
+    fun uploadImage(id: String, byteString: String): Task<DocumentSnapshot>
     fun deleteUser(id: String): Task<Void>
 }

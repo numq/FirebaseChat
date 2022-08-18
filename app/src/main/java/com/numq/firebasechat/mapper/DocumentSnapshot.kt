@@ -61,6 +61,7 @@ val DocumentSnapshot.user
         val id = getString("id")
         val email = getString("email")
         val name = getString("name")
+        val imageUri = getString("imageUri")
         val isOnline = getBoolean("online")
         val lastSeenAt = getLong("lastSeenAt")
         return if (id != null && email != null && isOnline != null && lastSeenAt != null) {
@@ -68,6 +69,7 @@ val DocumentSnapshot.user
                 id = id,
                 email = email,
                 name = name,
+                imageUri = imageUri,
                 isOnline = isOnline,
                 lastSeenAt = lastSeenAt
             )
