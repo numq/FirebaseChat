@@ -65,6 +65,9 @@ fun HomeScreen(
                 vm.createChat(user.id, it.id)
             },
             updateActiveChat = vm::updateActiveChat,
+            uploadImage = {
+                vm.uploadImage(user.id, it)
+            },
             signOut = {
                 vm.signOut(navigateToAuth)
             })
@@ -80,6 +83,7 @@ fun BuildHome(
     activeChat: Chat?,
     createChat: (User) -> Unit,
     updateActiveChat: (Chat) -> Unit,
+    uploadImage: (ByteArray) -> Unit,
     signOut: () -> Unit
 ) {
 
@@ -102,7 +106,7 @@ fun BuildHome(
             .clickable { setIsSearching(false) }
         else Modifier
 
-    Drawer(currentUser, onDrawerArticleClick = {
+    Drawer(currentUser, onUploadImage = uploadImage, onDrawerArticleClick = {
         when (it) {
             is DrawerArticle.Settings -> Unit
             is DrawerArticle.SignOut -> setSignOutVisible(true)
@@ -126,7 +130,7 @@ fun BuildHome(
                         }
                     })
             }, floatingActionButton = {
-                IconButton(onClick = {
+                FloatingActionButton(onClick = {
                     setIsSearching(true)
                 }) {
                     Icon(Icons.Rounded.Search, "search users")

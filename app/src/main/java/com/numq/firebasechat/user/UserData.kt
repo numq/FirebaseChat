@@ -20,8 +20,8 @@ class UserData @Inject constructor(
 
     override suspend fun getUserById(id: String) =
         userService.getUserById(id)
+            .mapNotNull { it.user }
             .wrap()
-            .map { it.user }
             .leftIfNull { UserException }
 
     override suspend fun updateUser(user: User) =
@@ -29,8 +29,8 @@ class UserData @Inject constructor(
             .wrap()
             .map { user }
 
-    override suspend fun uploadImage(id: String, byteString: String) =
-        userService.uploadImage(id, byteString)
+    override suspend fun uploadImage(id: String, bytes: ByteArray) =
+        userService.uploadImage(id, bytes)
             .wrap()
             .map { it.user }
             .leftIfNull { UserException }

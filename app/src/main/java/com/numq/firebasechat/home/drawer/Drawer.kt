@@ -1,6 +1,8 @@
 package com.numq.firebasechat.home.drawer
 
-import androidx.compose.foundation.Image
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
@@ -11,9 +13,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.numq.firebasechat.user.User
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -22,11 +27,23 @@ import kotlinx.coroutines.launch
 fun Drawer(
     currentUser: User,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
+    onUploadImage: (ByteArray) -> Unit,
     onDrawerArticleClick: (DrawerArticle) -> Unit,
     onDrawerOpened: () -> Unit = {},
     onDrawerClosed: () -> Unit = {},
     content: @Composable (() -> Unit, () -> Unit) -> Unit
 ) {
+
+    val context = LocalContext.current
+
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri ->
+            uri?.let {
+                context.contentResolver.openInputStream(uri)?.readBytes()?.let(onUploadImage)
+            }
+        }
+    )
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
@@ -49,10 +66,18 @@ fun Drawer(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(8.dp)) {
-                            Image(
-                                Icons.Rounded.Person, "", modifier = Modifier
+                            AsyncImage(
+                                model = currentUser.imageUri,
+                                contentDescription = "user profile image",
+                                modifier = Modifier
                                     .size(72.dp)
-                                    .clip(CircleShape), contentScale = ContentScale.Crop
+                                    .clip(CircleShape)
+                                    .clickable {
+                                        imagePicker.launch("image/*")
+                                    },
+                                contentScale = ContentScale.Crop,
+                                placeholder = rememberVectorPainter(Icons.Rounded.Person),
+                                fallback = rememberVectorPainter(Icons.Rounded.Person)
                             )
                             Column(modifier = Modifier.padding(8.dp)) {
                                 if (currentUser.name != null) {
@@ -82,22 +107,6 @@ fun Drawer(
                 }
             }) {
             content(openDrawer, closeDrawer)
-//            BuildChats(currentUser, activeChat, chats, maxWidth,
-//                onItemClick = {
-//                    vm.updateLastActiveChatId(currentUser.copy(lastActiveChatId = it.id))
-//                    chatIsOpen = true
-//                },
-//                onDrawerOpen = {
-//                    openDrawer()
-//                    chatIsOpen = false
-//                },
-//                onSearch = { activeDialog = DialogItem.SEARCH })
-//        }
-//        activeChat?.let { chat ->
-//            BuildActiveChat(currentUser, chat, chatIsOpen, maxWidth, vm) {
-//                chatIsOpen = it
-//            }
-//        }
         }
     }
 }

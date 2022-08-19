@@ -43,7 +43,19 @@ class UserService @Inject constructor(
         }
     }
 
-    override fun getUserById(id: String) = collection.document(id).get()
+    override fun getUserById(id: String) = callbackFlow {
+        val subscription = collection.document(id).addSnapshotListener { value, error ->
+            error?.let { close(error) }
+            coroutineScope.launch {
+                value?.let {
+                    send(it)
+                }
+            }
+        }
+        awaitClose {
+            subscription.remove()
+        }
+    }
 
     override fun createUser(id: String, email: String) =
         collection.document(id).set(
@@ -72,11 +84,11 @@ class UserService @Inject constructor(
         )
     }
 
-    override fun uploadImage(id: String, byteString: String) =
-        storage.reference.child(id).putBytes(byteString.toByteArray()).addOnSuccessListener {
-            collection.document(id).update(
-                "imageUri", it.storage.downloadUrl
-            )
+    override fun uploadImage(id: String, bytes: ByteArray) =
+        storage.reference.child(id).putBytes(bytes).addOnSuccessListener {
+            it.storage.downloadUrl.addOnSuccessListener { uri ->
+                collection.document(id).update("imageUri", uri.toString())
+            }
         }.continueWithTask {
             collection.document(id).get()
         }

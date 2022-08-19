@@ -6,9 +6,9 @@ import com.numq.firebasechat.auth.GetAuthenticationId
 import com.numq.firebasechat.auth.SignOut
 import com.numq.firebasechat.chat.Chat
 import com.numq.firebasechat.chat.CreateChat
-import com.numq.firebasechat.chat.GetChatById
 import com.numq.firebasechat.chat.GetChats
 import com.numq.firebasechat.user.GetUserById
+import com.numq.firebasechat.user.UploadImage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,9 +20,9 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val getAuthenticationId: GetAuthenticationId,
     private val getUserById: GetUserById,
-    private val getChatById: GetChatById,
     private val getChats: GetChats,
     private val createChat: CreateChat,
+    private val uploadImage: UploadImage,
     private val signOut: SignOut
 ) : ViewModel() {
 
@@ -37,8 +37,12 @@ class HomeViewModel @Inject constructor(
                         id?.let {
                             getUserById.invoke(id) { data ->
                                 data.fold(onError) { user ->
-                                    _state.update {
-                                        it.copy(currentUser = user)
+                                    viewModelScope.launch {
+                                        user.collect { user ->
+                                            _state.update {
+                                                it.copy(currentUser = user)
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -55,7 +59,7 @@ class HomeViewModel @Inject constructor(
             data.fold(onError) { chats ->
                 viewModelScope.launch {
                     chats.collect { chat ->
-                        if (chat !in state.value.chats){
+                        if (chat !in state.value.chats) {
                             _state.update {
                                 it.copy(chats = it.chats.plus(chat))
                             }
@@ -80,6 +84,11 @@ class HomeViewModel @Inject constructor(
                     it.copy(activeChat = chat)
                 }
             }
+        }
+
+    fun uploadImage(id: String, bytes: ByteArray) =
+        uploadImage.invoke(Pair(id, bytes)) { data ->
+            data.fold(onError) {}
         }
 
     fun signOut(action: () -> Unit) = signOut.invoke(Unit) { data ->

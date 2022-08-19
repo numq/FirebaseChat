@@ -6,9 +6,9 @@ import javax.inject.Inject
 
 class UploadImage @Inject constructor(
     private val repository: UserRepository
-) : UseCase<Pair<String, String>, User>() {
-    override suspend fun execute(arg: Pair<String, String>): Either<Exception, User> {
-        val (id, byteString) = arg
-        return repository.uploadImage(id, byteString)
+) : UseCase<Pair<String, ByteArray>, User>() {
+    override suspend fun execute(arg: Pair<String, ByteArray>): Either<Exception, User> {
+        val (id, bytes) = arg
+        return repository.uploadImage(id, bytes)
     }
 }
