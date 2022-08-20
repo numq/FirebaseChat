@@ -10,13 +10,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.numq.firebasechat.auth.AuthScreen
 import com.numq.firebasechat.home.HomeScreen
 import com.numq.firebasechat.permission.PermissionsRequired
+import com.numq.firebasechat.settings.SettingsScreen
 import com.numq.firebasechat.splash.SplashScreen
 
 @Composable
@@ -79,8 +82,21 @@ fun AppRouter() {
                                         inclusive = true
                                     }
                                 }
+                            },
+                            navigateToSettings = {
+                                navController.navigate(Route.Settings.destination) {
+                                    navArgument("id") {
+                                        type = NavType.StringType
+                                    }
+                                    launchSingleTop = true
+                                }
                             }
                         )
+                    }
+                    composable(Route.Settings.destination) {
+                        SettingsScreen(scaffoldState, it) {
+                            navController.navigateUp()
+                        }
                     }
                 }
             }

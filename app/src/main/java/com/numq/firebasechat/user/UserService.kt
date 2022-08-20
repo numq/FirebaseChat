@@ -1,5 +1,6 @@
 package com.numq.firebasechat.user
 
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
@@ -15,6 +16,7 @@ import javax.inject.Singleton
 @Singleton
 class UserService @Inject constructor(
     firestore: FirebaseFirestore,
+    private val auth: FirebaseAuth,
     private val storage: FirebaseStorage
 ) : UserApi {
 
@@ -75,21 +77,31 @@ class UserService @Inject constructor(
         System.currentTimeMillis()
     )
 
-    override fun updateUser(user: User) = with(user) {
-        collection.document(user.id).update(
-            "name",
-            name,
-            "email",
-            email
-        )
-    }
-
     override fun uploadImage(id: String, bytes: ByteArray) =
         storage.reference.child(id).putBytes(bytes).addOnSuccessListener {
             it.storage.downloadUrl.addOnSuccessListener { uri ->
                 collection.document(id).update("imageUri", uri.toString())
             }
         }.continueWithTask {
+            collection.document(id).get()
+        }
+
+    override fun updateName(id: String, name: String) = collection.document(id).update(
+        "name",
+        name
+    ).continueWithTask {
+        collection.document(id).get()
+    }
+
+    override fun updateEmail(id: String, email: String) = collection.document(id).update(
+        "email",
+        email
+    ).continueWithTask {
+        collection.document(id).get()
+    }
+
+    override fun changePassword(id: String, password: String) =
+        auth.currentUser?.updatePassword(password)?.continueWithTask {
             collection.document(id).get()
         }
 

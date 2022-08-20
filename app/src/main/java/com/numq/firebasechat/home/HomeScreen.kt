@@ -36,6 +36,7 @@ import com.numq.firebasechat.user.User
 fun HomeScreen(
     scaffoldState: ScaffoldState,
     navigateToAuth: () -> Unit,
+    navigateToSettings: (String) -> Unit,
     vm: HomeViewModel = hiltViewModel()
 ) {
 
@@ -68,6 +69,9 @@ fun HomeScreen(
             uploadImage = {
                 vm.uploadImage(user.id, it)
             },
+            openSettings = {
+                navigateToSettings(it)
+            },
             signOut = {
                 vm.signOut(navigateToAuth)
             })
@@ -84,6 +88,7 @@ fun BuildHome(
     createChat: (User) -> Unit,
     updateActiveChat: (Chat) -> Unit,
     uploadImage: (ByteArray) -> Unit,
+    openSettings: (String) -> Unit,
     signOut: () -> Unit
 ) {
 
@@ -108,7 +113,7 @@ fun BuildHome(
 
     Drawer(currentUser, onUploadImage = uploadImage, onDrawerArticleClick = {
         when (it) {
-            is DrawerArticle.Settings -> Unit
+            is DrawerArticle.Settings -> openSettings(currentUser.id)
             is DrawerArticle.SignOut -> setSignOutVisible(true)
         }
     }) { openDrawer, closeDrawer ->
