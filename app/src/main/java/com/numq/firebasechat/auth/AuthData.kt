@@ -23,7 +23,7 @@ class AuthData @Inject constructor(
             .leftIfNull { AuthException }
 
     override suspend fun signUpByEmail(name: String, email: String, password: String) =
-        authService.signUpByEmail(name, email, password).addOnSuccessListener {
+        authService.signUpByEmail(email, password).addOnSuccessListener {
             it.user?.uid?.let { id ->
                 userService.createUser(id, email).addOnSuccessListener {
                     userService.updateName(id, name)
