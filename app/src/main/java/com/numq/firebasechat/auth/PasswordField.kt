@@ -23,7 +23,8 @@ fun PasswordField(
     maxLength: Int,
     password: String,
     setPassword: (String) -> Unit,
-    validateInput: (String) -> String
+    validateInput: (String) -> String,
+    isPasswordValid: (String) -> Boolean
 ) {
     val emptyString = ""
     val (passwordVisible, setPasswordVisible) = rememberSaveable {
@@ -60,6 +61,7 @@ fun PasswordField(
             autoCorrect = false,
             keyboardType = KeyboardType.Password
         ),
-        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation()
+        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+        isError = isPasswordValid(password)
     )
 }

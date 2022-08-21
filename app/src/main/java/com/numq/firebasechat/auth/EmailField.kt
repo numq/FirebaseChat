@@ -15,7 +15,8 @@ fun EmailField(
     maxLength: Int,
     email: String,
     setEmail: (String) -> Unit,
-    validateInput: (String) -> String
+    validateInput: (String) -> String,
+    isEmailValid: (String) -> Boolean
 ) {
     val emptyString = ""
     TextField(
@@ -31,6 +32,6 @@ fun EmailField(
                 }) {
                     Icon(Icons.Rounded.Clear, "clear icon")
                 }
-        }
+        }, isError = isEmailValid(email)
     )
 }

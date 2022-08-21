@@ -20,12 +20,15 @@ import androidx.compose.ui.unit.dp
 fun SingleAuthScreen(
     isSignUp: Boolean,
     onSignIn: (String, String) -> Unit,
-    onSignUp: (String, String) -> Unit,
+    onSignUp: (String, String, String) -> Unit,
     onCancelAuthentication: () -> Unit,
     validator: InputValidator = InputValidator
 ) {
 
     val emptyString = ""
+    val (name, setName) = rememberSaveable {
+        mutableStateOf(emptyString)
+    }
     val (email, setEmail) = rememberSaveable {
         mutableStateOf(emptyString)
     }
@@ -67,12 +70,24 @@ fun SingleAuthScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            AnimatedVisibility(visible = isSignUp) {
+                NameField(
+                    placeholder = "Name",
+                    maxLength = validator.nameConstraints.last,
+                    name,
+                    setName,
+                    validator::validateString,
+                    validator::validateName
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+            }
             EmailField(
                 placeholder = "Email",
                 maxLength = validator.emailConstraints.last,
                 email,
                 setEmail,
-                validator.validateString
+                validator::validateString,
+                validator::validateEmail
             )
             Spacer(modifier = Modifier.height(4.dp))
             PasswordField(
@@ -80,7 +95,8 @@ fun SingleAuthScreen(
                 maxLength = validator.passwordConstraints.last,
                 password,
                 setPassword,
-                validator.validateString
+                validator::validateString,
+                validator::validatePassword
             )
             Spacer(modifier = Modifier.height(4.dp))
             AnimatedVisibility(visible = isSignUp) {
@@ -89,7 +105,8 @@ fun SingleAuthScreen(
                     maxLength = validator.passwordConstraints.last,
                     confirmedPassword,
                     setConfirmedPassword,
-                    validator.validateString
+                    validator::validateString,
+                    validator::validatePassword
                 )
             }
             if (authenticating) {
@@ -101,7 +118,7 @@ fun SingleAuthScreen(
                 IconButton(onClick = {
                     setAuthenticating(true)
                     if (isSignUp) {
-                        onSignUp(email, password)
+                        onSignUp(name, email, password)
                     } else {
                         onSignIn(email, password)
                     }
