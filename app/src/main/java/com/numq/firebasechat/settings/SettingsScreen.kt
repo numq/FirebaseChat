@@ -221,7 +221,7 @@ fun BuildSettings(
                                 Icon(Icons.Rounded.Clear, "clear password")
                             }
                         }, singleLine = true, placeholder = {
-                            Text(text = "Change password:")
+                            Text(text = "Change password")
                         }, isError = InputValidator.validatePassword(name),
                         keyboardOptions = KeyboardOptions(
                             autoCorrect = false,
