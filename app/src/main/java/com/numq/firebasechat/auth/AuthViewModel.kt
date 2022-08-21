@@ -40,13 +40,13 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun signUp(email: String, password: String) {
+    fun signUp(name: String, email: String, password: String) {
         _state.update {
             it.copy(isAuthenticating = true)
         }
         when (state.value.authType) {
             AuthType.EmailPassword -> {
-                signUpByEmail.invoke(Pair(email, password)) { data ->
+                signUpByEmail.invoke(Triple(name, email, password)) { data ->
                     data.fold(onError) { userId ->
                         _state.update {
                             it.copy(userId = userId, isAuthenticating = false)
