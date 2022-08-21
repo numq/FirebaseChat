@@ -26,8 +26,8 @@ fun AuthScreen(
     val onSignIn: (String, String) -> Unit = { email, password ->
         vm.signIn(email, password)
     }
-    val onSignUp: (String, String) -> Unit = { email, password ->
-        vm.signUp(email, password)
+    val onSignUp: (String, String, String) -> Unit = { name, email, password ->
+        vm.signUp(name, email, password)
     }
     val onCancelAuthentication: () -> Unit = vm::cancelAuth
 

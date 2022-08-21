@@ -22,10 +22,12 @@ class AuthData @Inject constructor(
             .map { it.user?.uid }
             .leftIfNull { AuthException }
 
-    override suspend fun signUpByEmail(email: String, password: String) =
-        authService.signUpByEmail(email, password).addOnSuccessListener {
+    override suspend fun signUpByEmail(name: String, email: String, password: String) =
+        authService.signUpByEmail(name, email, password).addOnSuccessListener {
             it.user?.uid?.let { id ->
-                userService.createUser(id, email)
+                userService.createUser(id, email).addOnSuccessListener {
+                    userService.updateName(id, name)
+                }
             }
         }.wrap().map { it.user?.uid }.leftIfNull { AuthException }
 

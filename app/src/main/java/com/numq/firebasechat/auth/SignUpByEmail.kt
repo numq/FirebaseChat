@@ -6,9 +6,9 @@ import javax.inject.Inject
 
 class SignUpByEmail @Inject constructor(
     private val repository: AuthRepository
-) : UseCase<Pair<String, String>, String>() {
-    override suspend fun execute(arg: Pair<String, String>): Either<Exception, String> {
-        val (email, password) = arg
-        return repository.signUpByEmail(email, password)
+) : UseCase<Triple<String, String, String>, String>() {
+    override suspend fun execute(arg: Triple<String, String, String>): Either<Exception, String> {
+        val (name, email, password) = arg
+        return repository.signUpByEmail(name, email, password)
     }
 }
