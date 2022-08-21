@@ -2,14 +2,14 @@ package com.numq.firebasechat.navigation
 
 sealed class Route private constructor(
     val name: String,
-    val destination: String = name.lowercase(),
+    val destination: String = name.lowercase()
 ) {
 
     private companion object {
         const val SPLASH = "splash"
         const val AUTH = "auth"
         const val HOME = "home"
-        const val SETTINGS = "settings/{id}"
+        const val SETTINGS = "settings"
     }
 
     object Splash : Route(SPLASH)

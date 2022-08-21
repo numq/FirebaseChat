@@ -4,32 +4,36 @@ import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Clear
-import androidx.compose.material.icons.rounded.Done
-import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavBackStackEntry
 import coil.compose.AsyncImage
+import com.numq.firebasechat.auth.InputValidator
 import com.numq.firebasechat.error.ShowError
 import com.numq.firebasechat.user.User
 
 @Composable
 fun SettingsScreen(
     scaffoldState: ScaffoldState,
-    navBackStackEntry: NavBackStackEntry,
+    userId: String?,
     vm: SettingsViewModel = hiltViewModel(),
     navigateUp: () -> Unit
 ) {
@@ -42,7 +46,7 @@ fun SettingsScreen(
 
     LaunchedEffect(Unit) {
         Log.e("SETTINGS", state.toString())
-        navBackStackEntry.arguments?.getString("id")?.let(vm::updateUser)
+        userId?.let(vm::getUserById) ?: navigateUp()
     }
 
     state.exception?.let {
@@ -58,8 +62,8 @@ fun SettingsScreen(
             vm.updateEmail(user.id, it)
         }, onPasswordChange = {
             vm.changePassword(user.id, it)
-        })
-    } ?: Text("SETTINGS")
+        }, onExitSettings = navigateUp)
+    } ?: navigateUp()
 
 }
 
@@ -69,7 +73,8 @@ fun BuildSettings(
     onUploadImage: (ByteArray) -> Unit,
     onNameChange: (String) -> Unit,
     onEmailChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit
+    onPasswordChange: (String) -> Unit,
+    onExitSettings: () -> Unit
 ) {
 
     val context = LocalContext.current
@@ -83,98 +88,158 @@ fun BuildSettings(
         }
     )
 
-    val (name, setName) = remember {
-        mutableStateOf(user.name ?: "")
-    }
-
-    val (email, setEmail) = remember {
-        mutableStateOf(user.email)
-    }
-
-    val (password, setPassword) = remember {
+    val (name, setName) = rememberSaveable {
         mutableStateOf("")
     }
 
-    Column(
-        Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-            AsyncImage(
-                model = user.imageUri,
-                contentDescription = "user profile image",
-                modifier = Modifier
-                    .size(72.dp)
-                    .clip(CircleShape)
-                    .clickable {
-                        imagePicker.launch("image/*")
-                    },
-                contentScale = ContentScale.Crop,
-                placeholder = rememberVectorPainter(Icons.Rounded.Person),
-                fallback = rememberVectorPainter(Icons.Rounded.Person)
-            )
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        user.name?.let {
-            Text(text = "My name is ${user.name}, but I want to be known as $name")
-        } ?: Text(text = "Now my name will be $name")
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextField(value = name, onValueChange = setName, trailingIcon = {
-                IconButton(onClick = { setName("") }) {
-                    Icon(Icons.Rounded.Clear, "clear name")
-                }
-            }, singleLine = true)
+    val (email, setEmail) = rememberSaveable {
+        mutableStateOf("")
+    }
+
+    val (password, setPassword) = rememberSaveable {
+        mutableStateOf("")
+    }
+
+    val (passwordVisible, setPasswordVisible) = rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    Scaffold(topBar = {
+        TopAppBar(title = {
+            Text("Settings")
+        }, navigationIcon = {
             IconButton(onClick = {
-                onNameChange(name)
-                setName("")
+                onExitSettings()
             }) {
-                Icon(Icons.Rounded.Done, "confirm name change")
+                Icon(Icons.Rounded.ArrowBack, "exit settings")
             }
-        }
-        Divider()
-        Text(text = "Change my email from ${user.email} to $email")
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        })
+    }) { paddingValues ->
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.SpaceEvenly
         ) {
-            TextField(value = email, onValueChange = setEmail, trailingIcon = {
-                IconButton(onClick = { setEmail("") }) {
-                    Icon(Icons.Rounded.Clear, "clear email")
-                }
-            }, singleLine = true)
-            IconButton(onClick = {
-                onEmailChange(email)
-                setEmail("")
-            }) {
-                Icon(Icons.Rounded.Done, "confirm email change")
+            BoxWithConstraints(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                AsyncImage(
+                    model = user.imageUri,
+                    contentDescription = "user profile image",
+                    modifier = Modifier
+                        .size(maxWidth.times(.8f))
+                        .clip(CircleShape)
+                        .clickable {
+                            imagePicker.launch("image/*")
+                        },
+                    contentScale = ContentScale.Crop,
+                    placeholder = rememberVectorPainter(Icons.Rounded.Person),
+                    fallback = rememberVectorPainter(Icons.Rounded.Person)
+                )
             }
-        }
-        Divider()
-        Text(text = "Update my password")
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextField(value = password, onValueChange = setPassword, trailingIcon = {
-                IconButton(onClick = { setPassword("") }) {
-                    Icon(Icons.Rounded.Clear, "clear password")
+            Column(
+                Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextField(value = name, onValueChange = setName,
+                        modifier = Modifier.weight(1f),
+                        leadingIcon = { Icon(Icons.Rounded.Person, "person icon") },
+                        trailingIcon = {
+                            if (name.isNotBlank()) IconButton(onClick = { setName("") }) {
+                                Icon(Icons.Rounded.Clear, "clear name")
+                            }
+                        }, singleLine = true, placeholder = {
+                            Text(text = "Change name")
+                        }, isError = InputValidator.validateName(name)
+                    )
+                    AnimatedVisibility(InputValidator.validateName(name)) {
+                        IconButton(onClick = {
+                            onNameChange(name)
+                            setName("")
+                        }, enabled = name.isNotBlank()) {
+                            Icon(Icons.Rounded.Done, "confirm name change")
+                        }
+                    }
                 }
-            }, singleLine = true)
-            IconButton(onClick = {
-                onPasswordChange(password)
-                setPassword("")
-            }) {
-                Icon(Icons.Rounded.Done, "confirm password change")
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextField(value = email, onValueChange = setEmail,
+                        modifier = Modifier.weight(1f),
+                        leadingIcon = { Icon(Icons.Rounded.Person, "person icon") },
+                        trailingIcon = {
+                            if (email.isNotBlank()) IconButton(onClick = { setEmail("") }) {
+                                Icon(Icons.Rounded.Clear, "clear email")
+                            }
+                        }, singleLine = true, placeholder = {
+                            Text(text = "Change email")
+                        }, isError = InputValidator.validateEmail(email)
+                    )
+                    AnimatedVisibility(InputValidator.validateEmail(email)) {
+                        IconButton(onClick = {
+                            onEmailChange(email)
+                            setEmail("")
+                        }, enabled = email.isNotBlank()) {
+                            Icon(Icons.Rounded.Done, "confirm email change")
+                        }
+                    }
+                }
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextField(value = password, onValueChange = setPassword,
+                        modifier = Modifier.weight(1f),
+                        leadingIcon = {
+                            if (password.isNotBlank()) {
+                                IconButton(onClick = {
+                                    setPasswordVisible(!passwordVisible)
+                                }) {
+                                    if (passwordVisible) Icon(
+                                        Icons.Rounded.Visibility,
+                                        "visible password icon"
+                                    )
+                                    else Icon(Icons.Rounded.VisibilityOff, "hidden password icon")
+                                }
+                            } else Icon(Icons.Rounded.Password, "password icon")
+                        },
+                        trailingIcon = {
+                            if (password.isNotBlank()) IconButton(onClick = { setPassword("") }) {
+                                Icon(Icons.Rounded.Clear, "clear password")
+                            }
+                        }, singleLine = true, placeholder = {
+                            Text(text = "Change password:")
+                        }, isError = InputValidator.validatePassword(name),
+                        keyboardOptions = KeyboardOptions(
+                            autoCorrect = false,
+                            keyboardType = KeyboardType.Password
+                        ),
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation()
+                    )
+                    AnimatedVisibility(InputValidator.validatePassword(password)) {
+                        IconButton(onClick = {
+                            onPasswordChange(password)
+                            setPassword("")
+                        }, enabled = password.isNotBlank()) {
+                            Icon(Icons.Rounded.Done, "confirm password change")
+                        }
+                    }
+                }
             }
         }
     }
+
 }

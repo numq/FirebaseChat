@@ -10,12 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.numq.firebasechat.auth.AuthScreen
 import com.numq.firebasechat.home.HomeScreen
 import com.numq.firebasechat.permission.PermissionsRequired
@@ -84,17 +82,14 @@ fun AppRouter() {
                                 }
                             },
                             navigateToSettings = {
-                                navController.navigate(Route.Settings.destination) {
-                                    navArgument("id") {
-                                        type = NavType.StringType
-                                    }
+                                navController.navigate(Route.Settings.destination + "/$it") {
                                     launchSingleTop = true
                                 }
                             }
                         )
                     }
-                    composable(Route.Settings.destination) {
-                        SettingsScreen(scaffoldState, it) {
+                    composable(Route.Settings.destination + "/{userId}") {
+                        SettingsScreen(scaffoldState, it.arguments?.getString("userId")) {
                             navController.navigateUp()
                         }
                     }

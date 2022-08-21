@@ -22,7 +22,7 @@ class SettingsViewModel @Inject constructor(
     private val _state = MutableStateFlow(SettingsState())
     val state = _state.asStateFlow()
 
-    fun updateUser(id: String) = getUserById.invoke(id) { data ->
+    fun getUserById(id: String) = getUserById.invoke(id) { data ->
         data.fold(onError) { user ->
             viewModelScope.launch {
                 user.collect { user ->
