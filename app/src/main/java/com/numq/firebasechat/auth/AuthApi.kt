@@ -8,6 +8,6 @@ interface AuthApi {
     val authenticationState: Boolean
     val authenticationId: Flow<String?>
     fun signInByEmail(email: String, password: String): Task<AuthResult>
-    fun signUpByEmail(email: String, password: String): Task<AuthResult>
+    fun signUpByEmail(name: String, email: String, password: String): Task<AuthResult>
     fun signOut()
 }
