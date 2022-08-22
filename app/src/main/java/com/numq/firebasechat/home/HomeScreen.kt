@@ -9,7 +9,9 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Menu
@@ -29,6 +31,7 @@ import com.numq.firebasechat.error.ShowError
 import com.numq.firebasechat.home.dialog.SignOutDialog
 import com.numq.firebasechat.home.drawer.Drawer
 import com.numq.firebasechat.home.drawer.DrawerArticle
+import com.numq.firebasechat.list.isReachedTheEnd
 import com.numq.firebasechat.search.SearchScreen
 import com.numq.firebasechat.user.User
 
@@ -57,9 +60,19 @@ fun HomeScreen(
 
     state.currentUser?.let { user ->
         LaunchedEffect(user) { vm.observeChats(user.id, 0L, 20L) }
+        val chatState = rememberLazyListState()
+        val isReachedTheEnd by remember {
+            derivedStateOf {
+                chatState.isReachedTheEnd
+            }
+        }
+        LaunchedEffect(isReachedTheEnd) {
+            vm.loadMore(user.id, state.chats.lastIndex.toLong(), 20L)
+        }
         BuildHome(
             scaffoldState,
             currentUser = user,
+            chatState = chatState,
             chats = state.chats,
             activeChat = state.activeChat,
             createChat = {
@@ -83,6 +96,7 @@ fun HomeScreen(
 fun BuildHome(
     scaffoldState: ScaffoldState,
     currentUser: User,
+    chatState: LazyListState,
     chats: List<Chat>,
     activeChat: Chat?,
     createChat: (User) -> Unit,
@@ -91,6 +105,7 @@ fun BuildHome(
     openSettings: (String) -> Unit,
     signOut: () -> Unit
 ) {
+
 
     val (chatVisible, setChatVisible) = remember {
         mutableStateOf(false)
@@ -144,7 +159,8 @@ fun BuildHome(
                 LazyColumn(
                     Modifier
                         .fillMaxSize()
-                        .padding(paddingValues)
+                        .padding(paddingValues),
+                    state = chatState
                 ) {
                     items(chats) { chat ->
                         ChatListItem(

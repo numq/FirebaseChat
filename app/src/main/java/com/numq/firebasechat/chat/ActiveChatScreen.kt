@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.numq.firebasechat.list.isReachedTheEnd
 import com.numq.firebasechat.message.MessageChatItem
 import com.numq.firebasechat.user.User
 
@@ -38,7 +39,7 @@ fun ActiveChatScreen(
 
     LaunchedEffect(Unit) {
         Log.e("CHAT", state.toString())
-        vm.observeMessages(chat.id, 0L, 20L)
+        vm.getMessages(chat.id, 0L, 20L)
     }
 
     BackHandler(chatVisible) {
@@ -54,6 +55,16 @@ fun ActiveChatScreen(
     }
 
     val messagesState = rememberLazyListState()
+
+    val isReachedTheEnd by remember {
+        derivedStateOf {
+            messagesState.isReachedTheEnd
+        }
+    }
+
+    LaunchedEffect(isReachedTheEnd) {
+        vm.loadMore(chat.id, state.messages.lastIndex.toLong(), 20L)
+    }
 
     BoxWithConstraints {
         Card(

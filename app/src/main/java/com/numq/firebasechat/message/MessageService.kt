@@ -1,6 +1,5 @@
 package com.numq.firebasechat.message
 
-import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.CoroutineScope
@@ -27,18 +26,17 @@ class MessageService @Inject constructor(
     private val collection = firestore.collection(MESSAGES)
 
     override fun getMessages(chatId: String, skip: Long, limit: Long) = callbackFlow {
-        var lastDocument: DocumentSnapshot? = null
         val subscription = collection.whereEqualTo("chatId", chatId)
             .orderBy("sentAt", Query.Direction.DESCENDING)
             .limit(limit)
             .apply {
-                lastDocument?.let {
-                    startAfter(lastDocument)
+                collection.whereEqualTo("chatId", chatId).get().addOnSuccessListener {
+                    if (skip > 0 && it.documents.size > skip) startAfter(
+                        it.documents.drop(skip.toInt()).firstOrNull()
+                    )
                 }
-            }
-            .addSnapshotListener { value, error ->
+            }.addSnapshotListener { value, error ->
                 error?.let { close(error) }
-                lastDocument = value?.documents?.lastOrNull()
                 coroutineScope.launch {
                     value?.documents?.forEach() {
                         send(it)
@@ -60,7 +58,7 @@ class MessageService @Inject constructor(
                     chatId = chatId,
                     senderId = userId,
                     text = text,
-                    delivered = false,
+                    delivered = true,
                     read = false,
                     sentAt = System.currentTimeMillis(),
                     updatedAt = null

@@ -29,13 +29,14 @@ class ChatService @Inject constructor(
     private val collection = firestore.collection(CHATS)
 
     override fun getChats(userId: String, skip: Long, limit: Long) = callbackFlow {
-        var lastDocument: DocumentSnapshot? = null
         val subscription = collection.whereArrayContains("userIds", userId)
             .orderBy("updatedAt", Query.Direction.DESCENDING)
             .limit(limit)
             .apply {
-                lastDocument?.let {
-                    startAfter(lastDocument)
+                collection.whereArrayContains("userIds", userId).get().addOnSuccessListener {
+                    if (skip > 0 && it.documents.size > skip) startAfter(
+                        it.documents.drop(skip.toInt()).firstOrNull()
+                    )
                 }
             }.addSnapshotListener { value, error ->
                 error?.let { close(error) }
@@ -43,29 +44,12 @@ class ChatService @Inject constructor(
                     value?.documents?.forEach {
                         send(it)
                     }
-                    lastDocument = value?.documents?.lastOrNull()
                 }
             }
         awaitClose {
             subscription.remove()
         }
     }
-
-    /*override fun getChats(userId: String, skip: Long, limit: Long) = callbackFlow {
-        val subscription = collection.whereArrayContains("userIds", userId)
-            .orderBy("updatedAt", Query.Direction.DESCENDING)
-            .limit(limit).addSnapshotListener { value, error ->
-                error?.let { throw error }
-                coroutineScope.launch {
-                    value?.documents?.drop(skip.toInt())?.forEach {
-                        send(it)
-                    }
-                }
-            }
-        awaitClose {
-            subscription.remove()
-        }
-    }*/
 
     override fun getChatById(id: String) = collection.document(id).get()
 

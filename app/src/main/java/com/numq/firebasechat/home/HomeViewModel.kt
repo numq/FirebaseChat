@@ -12,6 +12,7 @@ import com.numq.firebasechat.user.UploadImage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -61,9 +62,23 @@ class HomeViewModel @Inject constructor(
                     chats.collect { chat ->
                         if (chat !in state.value.chats) {
                             _state.update {
-                                it.copy(chats = it.chats.plus(chat))
+                                it.copy(chats = it.chats.plus(chat)
+                                    .sortedByDescending { chat -> chat.updatedAt }
+                                    .distinct()
+                                )
                             }
                         }
+                    }
+                }
+            }
+        }
+
+    fun loadMore(userId: String, offset: Long, limit: Long) =
+        getChats.invoke(Triple(userId, offset, limit)) { data ->
+            data.fold(onError) { chats ->
+                viewModelScope.launch {
+                    _state.update {
+                        it.copy(chats = it.chats.plus(chats.toList()))
                     }
                 }
             }

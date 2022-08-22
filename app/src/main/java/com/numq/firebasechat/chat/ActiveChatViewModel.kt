@@ -7,6 +7,7 @@ import com.numq.firebasechat.message.SendMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -20,16 +21,29 @@ class ActiveChatViewModel @Inject constructor(
     private val _state = MutableStateFlow(ChatState())
     val state = _state.asStateFlow()
 
-    fun observeMessages(chatId: String, offset: Long, limit: Long) =
+    fun getMessages(chatId: String, offset: Long, limit: Long) =
         getMessages.invoke(Triple(chatId, offset, limit)) { data ->
             data.fold(onError) { messages ->
                 viewModelScope.launch {
-                    messages.collect { message ->
-                        if (message !in state.value.messages) {
-                            _state.update {
-                                it.copy(messages = it.messages.plus(message))
-                            }
+                    messages.collect { msg ->
+                        _state.update {
+                            it.copy(
+                                messages = it.messages.plus(msg)
+                                    .sortedByDescending { msg -> msg.sentAt }
+                                    .distinct()
+                            )
                         }
+                    }
+                }
+            }
+        }
+
+    fun loadMore(chatId: String, offset: Long, limit: Long) =
+        getMessages.invoke(Triple(chatId, offset, limit)) { data ->
+            data.fold(onError) { messages ->
+                viewModelScope.launch {
+                    _state.update {
+                        it.copy(messages = it.messages.plus(messages.toList()))
                     }
                 }
             }
