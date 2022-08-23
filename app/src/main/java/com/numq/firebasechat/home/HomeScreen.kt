@@ -23,7 +23,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.google.firebase.auth.FirebaseAuthException
 import com.numq.firebasechat.chat.ActiveChatScreen
 import com.numq.firebasechat.chat.Chat
 import com.numq.firebasechat.chat.ChatListItem
@@ -38,8 +37,8 @@ import com.numq.firebasechat.user.User
 @Composable
 fun HomeScreen(
     scaffoldState: ScaffoldState,
-    navigateToAuth: () -> Unit,
-    navigateToSettings: (String) -> Unit,
+    userId: String,
+    navigateToSettings: () -> Unit,
     vm: HomeViewModel = hiltViewModel()
 ) {
 
@@ -47,28 +46,25 @@ fun HomeScreen(
 
     LaunchedEffect(Unit) {
         Log.e("HOME", state.toString())
+        vm.observeCurrentUser(userId)
+        vm.observeChats(userId, 0L, 20L)
     }
 
     state.exception?.let {
-        when (it) {
-            is FirebaseAuthException -> LaunchedEffect(Unit) {
-                vm.signOut(navigateToAuth)
-            }
-            else -> ShowError(scaffoldState, it, vm.cleanUpError)
+        ShowError(scaffoldState, it, vm.cleanUpError)
+    }
+
+    val chatState = rememberLazyListState()
+    val isReachedTheEnd by remember {
+        derivedStateOf {
+            chatState.isReachedTheEnd
         }
+    }
+    LaunchedEffect(isReachedTheEnd) {
+        vm.loadMore(userId, state.chats.lastIndex.toLong(), 20L)
     }
 
     state.currentUser?.let { user ->
-        LaunchedEffect(user) { vm.observeChats(user.id, 0L, 20L) }
-        val chatState = rememberLazyListState()
-        val isReachedTheEnd by remember {
-            derivedStateOf {
-                chatState.isReachedTheEnd
-            }
-        }
-        LaunchedEffect(isReachedTheEnd) {
-            vm.loadMore(user.id, state.chats.lastIndex.toLong(), 20L)
-        }
         BuildHome(
             scaffoldState,
             currentUser = user,
@@ -83,10 +79,10 @@ fun HomeScreen(
                 vm.uploadImage(user.id, it)
             },
             openSettings = {
-                navigateToSettings(it)
+                navigateToSettings()
             },
             signOut = {
-                vm.signOut(navigateToAuth)
+                vm.signOut()
             })
     }
 

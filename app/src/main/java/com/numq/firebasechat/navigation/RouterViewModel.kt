@@ -1,4 +1,4 @@
-package com.numq.firebasechat.splash
+package com.numq.firebasechat.navigation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,11 +11,11 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SplashViewModel @Inject constructor(
+class RouterViewModel @Inject constructor(
     getAuthenticationId: GetAuthenticationId
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(SplashState())
+    private val _state = MutableStateFlow(RouterState())
     val state = _state.asStateFlow()
 
     init {
@@ -24,7 +24,7 @@ class SplashViewModel @Inject constructor(
                 viewModelScope.launch {
                     it.collect { id ->
                         _state.update {
-                            it.copy(authenticated = id != null)
+                            it.copy(userId = id, isLoading = false)
                         }
                     }
                 }

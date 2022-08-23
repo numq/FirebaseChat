@@ -2,7 +2,6 @@ package com.numq.firebasechat.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.numq.firebasechat.auth.GetAuthenticationId
 import com.numq.firebasechat.auth.SignOut
 import com.numq.firebasechat.chat.Chat
 import com.numq.firebasechat.chat.CreateChat
@@ -19,7 +18,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val getAuthenticationId: GetAuthenticationId,
     private val getUserById: GetUserById,
     private val getChats: GetChats,
     private val createChat: CreateChat,
@@ -30,25 +28,13 @@ class HomeViewModel @Inject constructor(
     private val _state = MutableStateFlow(HomeState())
     val state = _state.asStateFlow()
 
-    private fun observeCurrentUser() =
-        getAuthenticationId.invoke(Unit) { data ->
-            data.fold(onError) {
+    fun observeCurrentUser(userId: String) =
+        getUserById.invoke(userId) { data ->
+            data.fold(onError) { user ->
                 viewModelScope.launch {
-                    it.collect { id ->
-                        id?.let {
-                            getUserById.invoke(id) { data ->
-                                data.fold(onError) { user ->
-                                    viewModelScope.launch {
-                                        user.collect { user ->
-                                            _state.update {
-                                                it.copy(currentUser = user)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        } ?: _state.update {
-                            it.copy(currentUser = null)
+                    user.collect { user ->
+                        _state.update {
+                            it.copy(currentUser = user)
                         }
                     }
                 }
@@ -84,10 +70,6 @@ class HomeViewModel @Inject constructor(
             }
         }
 
-    init {
-        observeCurrentUser()
-    }
-
     fun updateActiveChat(chat: Chat) = _state.update {
         it.copy(activeChat = chat)
     }
@@ -106,10 +88,8 @@ class HomeViewModel @Inject constructor(
             data.fold(onError) {}
         }
 
-    fun signOut(action: () -> Unit) = signOut.invoke(Unit) { data ->
-        data.fold(onError) {
-            action()
-        }
+    fun signOut() = signOut.invoke(Unit) { data ->
+        data.fold(onError) {}
     }
 
     private val onError: (Exception) -> Unit = { exception ->

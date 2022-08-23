@@ -6,6 +6,6 @@ import javax.inject.Inject
 
 class GetAuthenticationId @Inject constructor(
     private val repository: AuthRepository
-) : UseCase<Unit, Flow<String?>>() {
+) : UseCase<Unit, Flow<String>>() {
     override suspend fun execute(arg: Unit) = repository.authenticationId
 }

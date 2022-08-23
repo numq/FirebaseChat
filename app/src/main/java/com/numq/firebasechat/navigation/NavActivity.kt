@@ -20,7 +20,7 @@ class NavActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    AppRouter()
+                    Router()
                 }
             }
         }
