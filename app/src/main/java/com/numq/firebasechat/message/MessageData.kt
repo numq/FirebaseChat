@@ -32,10 +32,10 @@ class MessageData @Inject constructor(
             .tap { it.message?.let { message -> chatService.updateLastMessage(chatId, message) } }
             .map { true }
 
-    override suspend fun updateMessage(id: String, text: String) =
-        messageService.updateMessage(id, text)
+    override suspend fun readMessage(id: String, userId: String) =
+        messageService.readMessage(id, userId)
             .wrap()
-            .map { true }
+            .map { Unit }
 
     override suspend fun deleteMessage(id: String) =
         messageService.deleteMessage(id)

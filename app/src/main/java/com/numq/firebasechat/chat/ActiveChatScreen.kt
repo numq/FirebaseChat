@@ -108,6 +108,9 @@ fun ActiveChatScreen(
                             reverseLayout = true
                         ) {
                             items(state.messages) { message ->
+                                LaunchedEffect(!message.read && message.senderId != currentUser.id) {
+                                    vm.readMessage(message.id)
+                                }
                                 MessageChatItem(currentUser, message, maxWidth)
                             }
                         }

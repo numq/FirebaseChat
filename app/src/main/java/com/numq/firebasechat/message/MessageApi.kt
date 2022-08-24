@@ -8,6 +8,6 @@ interface MessageApi {
     fun getMessages(chatId: String, skip: Long, limit: Long): Flow<DocumentSnapshot>
     fun getMessageById(id: String): Task<DocumentSnapshot>
     fun createMessage(chatId: String, userId: String, text: String): Task<DocumentSnapshot>
-    fun updateMessage(id: String, text: String): Task<Void>
+    fun readMessage(id: String): Task<Void>
     fun deleteMessage(id: String): Task<Void>
 }

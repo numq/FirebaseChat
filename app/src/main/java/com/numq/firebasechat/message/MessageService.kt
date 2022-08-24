@@ -68,8 +68,7 @@ class MessageService @Inject constructor(
             }
         }
 
-    override fun updateMessage(id: String, text: String) =
-        collection.document(id).update("text", text)
+    override fun readMessage(id: String) = collection.document(id).update("read", true)
 
     override fun deleteMessage(id: String) = collection.document("id").delete()
 

@@ -17,6 +17,6 @@ interface MessageRepository {
         text: String
     ): Either<Exception, Boolean>
 
-    suspend fun updateMessage(id: String, text: String): Either<Exception, Boolean>
+    suspend fun readMessage(id: String): Either<Exception, Unit>
     suspend fun deleteMessage(id: String): Either<Exception, String>
 }

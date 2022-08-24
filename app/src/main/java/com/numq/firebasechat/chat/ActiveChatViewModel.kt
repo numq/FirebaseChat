@@ -3,6 +3,7 @@ package com.numq.firebasechat.chat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.numq.firebasechat.message.GetMessages
+import com.numq.firebasechat.message.ReadMessage
 import com.numq.firebasechat.message.SendMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,7 +16,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ActiveChatViewModel @Inject constructor(
     private val getMessages: GetMessages,
-    private val sendMessage: SendMessage
+    private val sendMessage: SendMessage,
+    private val readMessage: ReadMessage
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ChatState())
@@ -55,6 +57,10 @@ class ActiveChatViewModel @Inject constructor(
                 if (it) onMessageSent()
             }
         }
+
+    fun readMessage(id: String) = readMessage.invoke(id) { data ->
+        data.fold(onError) {}
+    }
 
     private val onError: (Exception) -> Unit = { exception ->
         _state.update {
