@@ -25,17 +25,11 @@ class MessageService @Inject constructor(
 
     private val collection = firestore.collection(MESSAGES)
 
-    override fun getMessages(chatId: String, skip: Long, limit: Long) = callbackFlow {
+    override fun getLatestMessages(chatId: String, limit: Long) = callbackFlow {
         val subscription = collection.whereEqualTo("chatId", chatId)
             .orderBy("sentAt", Query.Direction.DESCENDING)
             .limit(limit)
-            .apply {
-                collection.whereEqualTo("chatId", chatId).get().addOnSuccessListener {
-                    if (skip > 0 && it.documents.size > skip) startAfter(
-                        it.documents.drop(skip.toInt()).firstOrNull()
-                    )
-                }
-            }.addSnapshotListener { value, error ->
+            .addSnapshotListener { value, error ->
                 error?.let { close(error) }
                 coroutineScope.launch {
                     value?.documents?.forEach() {
@@ -47,6 +41,15 @@ class MessageService @Inject constructor(
             subscription.remove()
         }
     }
+
+    override fun getMessages(chatId: String, lastMessageId: String, limit: Long) =
+        collection.document(lastMessageId).get().onSuccessTask {
+            collection.whereEqualTo("chatId", chatId)
+                .orderBy("sentAt", Query.Direction.DESCENDING)
+                .limit(limit)
+                .startAfter(it)
+                .get()
+        }
 
     override fun getMessageById(id: String) = collection.document(id).get()
 
@@ -63,12 +66,15 @@ class MessageService @Inject constructor(
                     sentAt = System.currentTimeMillis(),
                     updatedAt = null
                 )
-            ).continueWithTask {
+            ).onSuccessTask {
                 collection.document(id).get()
             }
         }
 
-    override fun readMessage(id: String) = collection.document(id).update("read", true)
+    override fun readMessage(id: String) =
+        collection.document(id).update("read", true).onSuccessTask {
+            collection.document(id).get()
+        }
 
     override fun deleteMessage(id: String) = collection.document("id").delete()
 

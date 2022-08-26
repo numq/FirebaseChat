@@ -14,10 +14,16 @@ class MessageData @Inject constructor(
     private val chatService: ChatApi
 ) : MessageRepository {
 
-    override suspend fun getMessages(chatId: String, skip: Long, limit: Long) =
-        messageService.getMessages(chatId, skip, limit)
+    override suspend fun getLatestMessages(chatId: String, limit: Long) =
+        messageService.getLatestMessages(chatId, limit)
             .mapNotNull { it.message }
             .wrap()
+            .leftIfNull { MessageException }
+
+    override suspend fun getMessages(chatId: String, lastMessageId: String, limit: Long) =
+        messageService.getMessages(chatId, lastMessageId, limit)
+            .wrap()
+            .map { it.documents.mapNotNull { document -> document.message } }
             .leftIfNull { MessageException }
 
     override suspend fun getMessageById(id: String) =
@@ -32,10 +38,11 @@ class MessageData @Inject constructor(
             .tap { it.message?.let { message -> chatService.updateLastMessage(chatId, message) } }
             .map { true }
 
-    override suspend fun readMessage(id: String, userId: String) =
-        messageService.readMessage(id, userId)
+    override suspend fun readMessage(id: String) =
+        messageService.readMessage(id)
             .wrap()
-            .map { Unit }
+            .map { it.message }
+            .leftIfNull { MessageException }
 
     override suspend fun deleteMessage(id: String) =
         messageService.deleteMessage(id)

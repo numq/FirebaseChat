@@ -2,19 +2,20 @@ package com.numq.firebasechat.chat
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.numq.firebasechat.message.GetLatestMessages
 import com.numq.firebasechat.message.GetMessages
 import com.numq.firebasechat.message.ReadMessage
 import com.numq.firebasechat.message.SendMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ActiveChatViewModel @Inject constructor(
+    private val getLatestMessages: GetLatestMessages,
     private val getMessages: GetMessages,
     private val sendMessage: SendMessage,
     private val readMessage: ReadMessage
@@ -23,30 +24,30 @@ class ActiveChatViewModel @Inject constructor(
     private val _state = MutableStateFlow(ChatState())
     val state = _state.asStateFlow()
 
-    fun getMessages(chatId: String, offset: Long, limit: Long) =
-        getMessages.invoke(Triple(chatId, offset, limit)) { data ->
+    fun observeLastMessages(chatId: String, limit: Long) =
+        getLatestMessages.invoke(Pair(chatId, limit)) { data ->
             data.fold(onError) { messages ->
                 viewModelScope.launch {
                     messages.collect { msg ->
-                        _state.update {
-                            it.copy(
-                                messages = it.messages.plus(msg)
-                                    .sortedByDescending { msg -> msg.sentAt }
-                                    .distinct()
-                            )
+                        if (msg !in state.value.messages) {
+                            _state.update {
+                                it.copy(
+                                    messages = it.messages.plus(msg)
+                                )
+                            }
                         }
                     }
                 }
             }
         }
 
-    fun loadMore(chatId: String, offset: Long, limit: Long) =
-        getMessages.invoke(Triple(chatId, offset, limit)) { data ->
+    fun loadMore(chatId: String, lastMessageId: String, limit: Long) =
+        getMessages.invoke(Triple(chatId, lastMessageId, limit)) { data ->
             data.fold(onError) { messages ->
-                viewModelScope.launch {
-                    _state.update {
-                        it.copy(messages = it.messages.plus(messages.toList()))
-                    }
+                _state.update {
+                    it.copy(
+                        messages = it.messages.plus(messages.filter { msg -> msg !in it.messages })
+                    )
                 }
             }
         }
@@ -59,7 +60,11 @@ class ActiveChatViewModel @Inject constructor(
         }
 
     fun readMessage(id: String) = readMessage.invoke(id) { data ->
-        data.fold(onError) {}
+        data.fold(onError) { updatedMessage ->
+            _state.update {
+                it.copy(messages = it.messages.map { msg -> if (msg.id == updatedMessage.id) updatedMessage else msg })
+            }
+        }
     }
 
     private val onError: (Exception) -> Unit = { exception ->

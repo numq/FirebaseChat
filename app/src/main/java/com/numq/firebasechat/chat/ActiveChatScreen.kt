@@ -39,7 +39,7 @@ fun ActiveChatScreen(
 
     LaunchedEffect(Unit) {
         Log.e("CHAT", state.toString())
-        vm.getMessages(chat.id, 0L, 20L)
+        vm.observeLastMessages(chat.id, 15L)
     }
 
     BackHandler(chatVisible) {
@@ -56,14 +56,10 @@ fun ActiveChatScreen(
 
     val messagesState = rememberLazyListState()
 
-    val isReachedTheEnd by remember {
-        derivedStateOf {
-            messagesState.isReachedTheEnd
+    messagesState.isReachedTheEnd(3) {
+        state.messages.lastOrNull()?.let {
+            vm.loadMore(chat.id, it.id, 15L)
         }
-    }
-
-    LaunchedEffect(isReachedTheEnd) {
-        vm.loadMore(chat.id, state.messages.lastIndex.toLong(), 20L)
     }
 
     BoxWithConstraints {
@@ -127,7 +123,7 @@ fun ActiveChatScreen(
                                 }, enabled = chatVisible,
                                 modifier = Modifier.weight(1f),
                                 trailingIcon = {
-                                    IconButton(onClick = {
+                                    if (messageText.isNotBlank()) IconButton(onClick = {
                                         setMessageText("")
                                     }) {
                                         Icon(Icons.Rounded.Clear, "clear input")
