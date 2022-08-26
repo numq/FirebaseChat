@@ -5,6 +5,6 @@ import javax.inject.Inject
 
 class ReadMessage @Inject constructor(
     private val repository: MessageRepository
-) : UseCase<String, Unit>() {
+) : UseCase<String, Message>() {
     override suspend fun execute(arg: String) = repository.readMessage(arg)
 }
