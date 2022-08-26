@@ -12,10 +12,16 @@ class ChatData @Inject constructor(
     private val chatService: ChatApi
 ) : ChatRepository {
 
-    override suspend fun getChats(userId: String, skip: Long, limit: Long) =
-        chatService.getChats(userId, skip, limit)
+    override suspend fun getLatestChats(userId: String, limit: Long) =
+        chatService.getLatestChats(userId, limit)
             .mapNotNull { it.chat }
             .wrap()
+            .leftIfNull { ChatException }
+
+    override suspend fun getChats(userId: String, lastChatId: String, limit: Long) =
+        chatService.getChats(userId, lastChatId, limit)
+            .wrap()
+            .map { it.documents.mapNotNull { document -> document.chat } }
             .leftIfNull { ChatException }
 
     override suspend fun getChatById(id: String) =

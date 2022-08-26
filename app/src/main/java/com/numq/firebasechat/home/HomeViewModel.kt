@@ -6,12 +6,12 @@ import com.numq.firebasechat.auth.SignOut
 import com.numq.firebasechat.chat.Chat
 import com.numq.firebasechat.chat.CreateChat
 import com.numq.firebasechat.chat.GetChats
+import com.numq.firebasechat.chat.GetLatestChats
 import com.numq.firebasechat.user.GetUserById
 import com.numq.firebasechat.user.UploadImage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -19,6 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getUserById: GetUserById,
+    private val getLatestChats: GetLatestChats,
     private val getChats: GetChats,
     private val createChat: CreateChat,
     private val uploadImage: UploadImage,
@@ -41,16 +42,15 @@ class HomeViewModel @Inject constructor(
             }
         }
 
-    fun observeChats(userId: String, offset: Long, limit: Long) =
-        getChats.invoke(Triple(userId, offset, limit)) { data ->
+    fun observeChats(userId: String, limit: Long) =
+        getLatestChats.invoke(Pair(userId, limit)) { data ->
             data.fold(onError) { chats ->
                 viewModelScope.launch {
                     chats.collect { chat ->
                         if (chat !in state.value.chats) {
                             _state.update {
-                                it.copy(chats = it.chats.plus(chat)
-                                    .sortedByDescending { chat -> chat.updatedAt }
-                                    .distinct()
+                                it.copy(
+                                    chats = it.chats.plus(chat)
                                 )
                             }
                         }
@@ -59,13 +59,13 @@ class HomeViewModel @Inject constructor(
             }
         }
 
-    fun loadMore(userId: String, offset: Long, limit: Long) =
-        getChats.invoke(Triple(userId, offset, limit)) { data ->
+    fun loadMore(userId: String, lastChatId: String, limit: Long) =
+        getChats.invoke(Triple(userId, lastChatId, limit)) { data ->
             data.fold(onError) { chats ->
-                viewModelScope.launch {
-                    _state.update {
-                        it.copy(chats = it.chats.plus(chats.toList()))
-                    }
+                _state.update {
+                    it.copy(
+                        chats = it.chats.plus(chats.filter { chat -> chat !in it.chats })
+                    )
                 }
             }
         }

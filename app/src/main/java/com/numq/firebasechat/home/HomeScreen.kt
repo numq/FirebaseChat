@@ -47,7 +47,7 @@ fun HomeScreen(
     LaunchedEffect(Unit) {
         Log.e("HOME", state.toString())
         vm.observeCurrentUser(userId)
-        vm.observeChats(userId, 0L, 20L)
+        vm.observeChats(userId, 15L)
     }
 
     state.exception?.let {
@@ -55,13 +55,11 @@ fun HomeScreen(
     }
 
     val chatState = rememberLazyListState()
-    val isReachedTheEnd by remember {
-        derivedStateOf {
-            chatState.isReachedTheEnd
+
+    chatState.isReachedTheEnd(3) {
+        state.chats.lastOrNull()?.let {
+            vm.loadMore(userId, it.id, 15L)
         }
-    }
-    LaunchedEffect(isReachedTheEnd) {
-        vm.loadMore(userId, state.chats.lastIndex.toLong(), 20L)
     }
 
     state.currentUser?.let { user ->
