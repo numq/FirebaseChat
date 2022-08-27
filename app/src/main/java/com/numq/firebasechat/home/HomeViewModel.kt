@@ -47,10 +47,16 @@ class HomeViewModel @Inject constructor(
             data.fold(onError) { chats ->
                 viewModelScope.launch {
                     chats.collect { chat ->
-                        if (chat !in state.value.chats) {
+                        if (chat.id !in state.value.chats.map { it.id }) {
                             _state.update {
                                 it.copy(
                                     chats = it.chats.plus(chat)
+                                )
+                            }
+                        } else {
+                            _state.update {
+                                it.copy(
+                                    chats = it.chats.map { prevChat -> if (prevChat.id == chat.id) chat else prevChat }
                                 )
                             }
                         }
