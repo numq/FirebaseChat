@@ -33,7 +33,7 @@ class ChatData @Inject constructor(
                         updatedChat = chat.copy(lastMessage = msg.message)
                     }
                 }
-                updatedChat ?: chat.copy(lastMessage = null)
+                updatedChat ?: chat
             }
             .wrap()
             .leftIfNull { ChatException }
