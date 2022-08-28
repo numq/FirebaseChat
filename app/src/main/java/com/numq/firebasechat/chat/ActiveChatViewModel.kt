@@ -29,10 +29,11 @@ class ActiveChatViewModel @Inject constructor(
             data.fold(onError) { messages ->
                 viewModelScope.launch {
                     messages.collect { msg ->
-                        if (msg !in state.value.messages) {
+                        if (msg.id !in state.value.messages.map { m -> m.id }) {
                             _state.update {
                                 it.copy(
-                                    messages = it.messages.plus(msg)
+                                    messages = listOf(msg).plus(it.messages)
+                                        .sortedByDescending { m -> m.sentAt }
                                 )
                             }
                         }
@@ -46,7 +47,8 @@ class ActiveChatViewModel @Inject constructor(
             data.fold(onError) { messages ->
                 _state.update {
                     it.copy(
-                        messages = it.messages.plus(messages.filter { msg -> msg !in it.messages })
+                        messages = it.messages.plus(messages.filter { msg -> msg.id !in it.messages.map { m -> m.id } }
+                            .sortedByDescending { m -> m.sentAt })
                     )
                 }
             }
