@@ -26,12 +26,6 @@ class MessageData @Inject constructor(
             .map { it.documents.mapNotNull { document -> document.message } }
             .leftIfNull { MessageException }
 
-    override suspend fun getLastChatMessage(chatId: String) =
-        messageService.getLatestMessages(chatId, 1)
-            .mapNotNull { it.message }
-            .wrap()
-            .leftIfNull { MessageException }
-
     override suspend fun createMessage(chatId: String, userId: String, text: String) =
         messageService.createMessage(chatId, userId, text)
             .wrap()

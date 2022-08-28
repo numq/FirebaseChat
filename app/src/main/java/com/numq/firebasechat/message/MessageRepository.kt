@@ -13,7 +13,6 @@ interface MessageRepository {
         lastMessageId: String,
         limit: Long
     ): Either<Exception, List<Message>>
-    suspend fun getLastChatMessage(chatId: String): Either<Exception, Flow<Message>>
     suspend fun createMessage(
         chatId: String,
         userId: String,
