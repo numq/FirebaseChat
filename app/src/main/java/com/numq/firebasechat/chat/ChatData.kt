@@ -2,19 +2,39 @@ package com.numq.firebasechat.chat
 
 import arrow.core.leftIfNull
 import com.numq.firebasechat.mapper.chat
+import com.numq.firebasechat.mapper.message
+import com.numq.firebasechat.message.MessageApi
 import com.numq.firebasechat.wrapper.wrap
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class ChatData @Inject constructor(
-    private val chatService: ChatApi
+    private val chatService: ChatApi,
+    private val messageService: MessageApi
 ) : ChatRepository {
+
+    private val coroutineContext = Dispatchers.Default + Job()
+    private val coroutineScope = CoroutineScope(coroutineContext)
 
     override suspend fun getLatestChats(userId: String, limit: Long) =
         chatService.getLatestChats(userId, limit)
             .mapNotNull { it.chat }
+            .map { chat ->
+                var updatedChat: Chat? = null
+                coroutineScope.launch {
+                    messageService.getLatestMessages(chat.id, 1).collect { msg ->
+                        updatedChat = chat.copy(lastMessage = msg.message)
+                    }
+                }
+                updatedChat ?: chat.copy(lastMessage = null)
+            }
             .wrap()
             .leftIfNull { ChatException }
 

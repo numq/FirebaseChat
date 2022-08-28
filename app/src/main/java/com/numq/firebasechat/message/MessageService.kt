@@ -51,8 +51,6 @@ class MessageService @Inject constructor(
                 .get()
         }
 
-    override fun getMessageById(id: String) = collection.document(id).get()
-
     override fun createMessage(chatId: String, userId: String, text: String) =
         with(collection.document()) {
             collection.document(id).set(

@@ -100,7 +100,6 @@ fun BuildHome(
     signOut: () -> Unit
 ) {
 
-
     val (chatVisible, setChatVisible) = remember {
         mutableStateOf(false)
     }

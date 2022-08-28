@@ -25,7 +25,12 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
-fun ChatListItem(user: User, chat: Chat, maxWidth: Dp, onItemClick: (Chat) -> Unit) {
+fun ChatListItem(
+    user: User,
+    chat: Chat,
+    maxWidth: Dp,
+    onItemClick: (Chat) -> Unit
+) {
 
     val isOutgoing = chat.lastMessage?.senderId == user.id
     val tint = if (isOutgoing) MessageColors.senderColor else MessageColors.receiverColor
@@ -33,7 +38,7 @@ fun ChatListItem(user: User, chat: Chat, maxWidth: Dp, onItemClick: (Chat) -> Un
     LaunchedEffect(Unit) {
         Log.e("chat", chat.toString())
     }
-    
+
     Card(
         Modifier
             .width(maxWidth)
@@ -53,7 +58,8 @@ fun ChatListItem(user: User, chat: Chat, maxWidth: Dp, onItemClick: (Chat) -> Un
                 Text(chat.name, color = Color.Black)
                 Divider(Modifier.fillMaxWidth(), color = Color.Black)
             }
-            chat.lastMessage?.let { message ->
+            chat.lastMessage?.also { message ->
+                Log.e("lastMessage", message.toString())
                 with(message) {
                     Column(
                         Modifier
@@ -93,7 +99,7 @@ fun ChatListItem(user: User, chat: Chat, maxWidth: Dp, onItemClick: (Chat) -> Un
                         }
                     }
                 }
-            } ?: Text("There's nothing here..")
+            } ?: Text("No messages...", color = Color.Black)
         }
     }
 }

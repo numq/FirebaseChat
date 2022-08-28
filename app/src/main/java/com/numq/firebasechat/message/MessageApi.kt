@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 interface MessageApi {
     fun getLatestMessages(chatId: String, limit: Long): Flow<DocumentSnapshot>
     fun getMessages(chatId: String, lastMessageId: String, limit: Long): Task<QuerySnapshot>
-    fun getMessageById(id: String): Task<DocumentSnapshot>
     fun createMessage(chatId: String, userId: String, text: String): Task<DocumentSnapshot>
     fun readMessage(id: String): Task<DocumentSnapshot>
     fun deleteMessage(id: String): Task<Void>

@@ -7,6 +7,7 @@ import com.numq.firebasechat.chat.Chat
 import com.numq.firebasechat.chat.CreateChat
 import com.numq.firebasechat.chat.GetChats
 import com.numq.firebasechat.chat.GetLatestChats
+import com.numq.firebasechat.message.GetLastChatMessage
 import com.numq.firebasechat.user.GetUserById
 import com.numq.firebasechat.user.UploadImage
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,6 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getUserById: GetUserById,
+    private val getLastChatMessage: GetLastChatMessage,
     private val getLatestChats: GetLatestChats,
     private val getChats: GetChats,
     private val createChat: CreateChat,
