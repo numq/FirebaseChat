@@ -10,5 +10,5 @@ interface MessageApi {
     fun getMessages(chatId: String, lastMessageId: String, limit: Long): Task<QuerySnapshot>
     fun createMessage(chatId: String, userId: String, text: String): Task<DocumentSnapshot>
     fun readMessage(id: String): Task<DocumentSnapshot>
-    fun deleteMessage(id: String): Task<Void>
+    fun deleteMessage(id: String): Task<DocumentSnapshot>?
 }

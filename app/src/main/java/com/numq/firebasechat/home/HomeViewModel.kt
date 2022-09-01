@@ -6,7 +6,7 @@ import com.numq.firebasechat.auth.SignOut
 import com.numq.firebasechat.chat.Chat
 import com.numq.firebasechat.chat.CreateChat
 import com.numq.firebasechat.chat.GetChats
-import com.numq.firebasechat.chat.GetLatestChats
+import com.numq.firebasechat.message.GetLatestMessages
 import com.numq.firebasechat.user.GetUserById
 import com.numq.firebasechat.user.UploadImage
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,8 +19,8 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getUserById: GetUserById,
-    private val getLatestChats: GetLatestChats,
     private val getChats: GetChats,
+    private val getLatestMessages: GetLatestMessages,
     private val createChat: CreateChat,
     private val uploadImage: UploadImage,
     private val signOut: SignOut
@@ -42,8 +42,8 @@ class HomeViewModel @Inject constructor(
             }
         }
 
-    fun observeChats(userId: String, limit: Long) =
-        getLatestChats.invoke(Pair(userId, limit)) { data ->
+    fun observeChats(userId: String, lastChatId: String?, limit: Long) =
+        getChats.invoke(Triple(userId, lastChatId, limit)) { data ->
             data.fold(onError) { chats ->
                 viewModelScope.launch {
                     chats.collect { chat ->
@@ -57,23 +57,13 @@ class HomeViewModel @Inject constructor(
                         } else {
                             _state.update {
                                 it.copy(
-                                    chats = it.chats.map { prevChat -> if (prevChat.id == chat.id) chat else prevChat }
+                                    chats = it.chats.map { prevChat ->
+                                        if (prevChat.id == chat.id) chat else prevChat
+                                    }
                                 )
                             }
                         }
                     }
-                }
-            }
-        }
-
-    fun loadMore(userId: String, lastChatId: String, limit: Long) =
-        getChats.invoke(Triple(userId, lastChatId, limit)) { data ->
-            data.fold(onError) { chats ->
-                _state.update {
-                    it.copy(
-                        chats = it.chats.plus(chats.filter { chat -> chat.id !in it.chats.map { c -> c.id } }
-                            .sortedByDescending { c -> c.updatedAt })
-                    )
                 }
             }
         }

@@ -47,7 +47,7 @@ fun HomeScreen(
     LaunchedEffect(Unit) {
         Log.e("HOME", state.toString())
         vm.observeCurrentUser(userId)
-        vm.observeChats(userId, 15L)
+        vm.observeChats(userId, null, 15L)
     }
 
     state.exception?.let {
@@ -58,7 +58,7 @@ fun HomeScreen(
 
     chatState.isReachedTheEnd(3) {
         state.chats.lastOrNull()?.let {
-            vm.loadMore(userId, it.id, 15L)
+            vm.observeChats(userId, it.id, 15L)
         }
     }
 

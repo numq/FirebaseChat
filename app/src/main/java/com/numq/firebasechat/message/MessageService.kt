@@ -74,6 +74,9 @@ class MessageService @Inject constructor(
             collection.document(id).get()
         }
 
-    override fun deleteMessage(id: String) = collection.document("id").delete()
-
+    override fun deleteMessage(id: String) = with(collection.document("id")) {
+        val task = get()
+        delete()
+        task
+    }
 }

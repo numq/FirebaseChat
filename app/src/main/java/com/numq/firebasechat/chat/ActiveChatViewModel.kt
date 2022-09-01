@@ -61,13 +61,14 @@ class ActiveChatViewModel @Inject constructor(
             }
         }
 
-    fun readMessage(id: String) = readMessage.invoke(id) { data ->
-        data.fold(onError) { updatedMessage ->
-            _state.update {
-                it.copy(messages = it.messages.map { msg -> if (msg.id == updatedMessage.id) updatedMessage else msg })
+    fun readMessage(id: String) =
+        readMessage.invoke(id) { data ->
+            data.fold(onError) { updatedMessage ->
+                _state.update {
+                    it.copy(messages = it.messages.map { msg -> if (msg.id == updatedMessage.id) updatedMessage else msg })
+                }
             }
         }
-    }
 
     private val onError: (Exception) -> Unit = { exception ->
         _state.update {

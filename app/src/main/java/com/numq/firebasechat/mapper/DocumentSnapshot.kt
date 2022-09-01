@@ -41,6 +41,8 @@ val DocumentSnapshot.message
             chatId != null &&
             senderId != null &&
             text != null &&
+            delivered != null &&
+            read != null &&
             sentAt != null
         ) {
             Message(
@@ -48,8 +50,8 @@ val DocumentSnapshot.message
                 chatId = chatId,
                 senderId = senderId,
                 text = text,
-                delivered = delivered ?: false,
-                read = read ?: false,
+                delivered = delivered,
+                read = read,
                 sentAt = sentAt,
                 updatedAt = updatedAt
             )
