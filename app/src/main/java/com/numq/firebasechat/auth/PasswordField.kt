@@ -62,6 +62,6 @@ fun PasswordField(
             keyboardType = KeyboardType.Password
         ),
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-        isError = isPasswordValid(password)
+        isError = !isPasswordValid(password)
     )
 }

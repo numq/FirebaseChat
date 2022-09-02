@@ -32,6 +32,6 @@ fun EmailField(
                 }) {
                     Icon(Icons.Rounded.Clear, "clear icon")
                 }
-        }, isError = isEmailValid(email)
+        }, isError = !isEmailValid(email)
     )
 }

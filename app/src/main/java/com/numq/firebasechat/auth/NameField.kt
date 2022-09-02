@@ -32,6 +32,6 @@ fun NameField(
                 }) {
                     Icon(Icons.Rounded.Clear, "clear icon")
                 }
-        }, isError = isNameValid(name)
+        }, isError = !isNameValid(name)
     )
 }
