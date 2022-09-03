@@ -22,6 +22,7 @@ import com.numq.firebasechat.home.HomeScreen
 import com.numq.firebasechat.permission.PermissionsRequired
 import com.numq.firebasechat.settings.SettingsScreen
 import com.numq.firebasechat.splash.SplashScreen
+import kotlinx.coroutines.delay
 
 @Composable
 fun Router(vm: RouterViewModel = hiltViewModel()) {
@@ -48,14 +49,15 @@ fun Router(vm: RouterViewModel = hiltViewModel()) {
         }
 
         LaunchedEffect(state.userId) {
-            if (!state.isLoading) {
-                state.userId?.let { id ->
-                    navController.navigate(Route.Home.destination + "/$id") {
-                        popUpTo(0) {
-                            inclusive = true
-                        }
+            state.userId?.let {
+                navController.navigate(Route.Home.destination + "/${state.userId}") {
+                    popUpTo(0) {
+                        inclusive = true
                     }
-                } ?: navController.navigate(Route.Auth.destination) {
+                }
+            } ?: run {
+                delay(1500)
+                navController.navigate(Route.Auth.destination) {
                     popUpTo(0) {
                         inclusive = true
                     }

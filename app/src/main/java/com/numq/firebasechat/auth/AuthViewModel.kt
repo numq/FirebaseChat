@@ -7,7 +7,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -30,20 +29,7 @@ class AuthViewModel @Inject constructor(
         when (state.value.authType) {
             AuthType.EmailPassword -> {
                 signInByEmail.invoke(Pair(email, password)) { data ->
-                    data.fold(onError) {
-                        viewModelScope.launch {
-                            it.collect { result ->
-                                when (result) {
-                                    is AuthResult.Authenticating -> _state.update {
-                                        it.copy(isAuthenticating = true)
-                                    }
-                                    else -> _state.update {
-                                        it.copy(isAuthenticating = false)
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    data.fold(onError) {}
                 }
             }
             else -> Unit
@@ -57,20 +43,7 @@ class AuthViewModel @Inject constructor(
         when (state.value.authType) {
             AuthType.EmailPassword -> {
                 signUpByEmail.invoke(Triple(name, email, password)) { data ->
-                    data.fold(onError) {
-                        viewModelScope.launch {
-                            it.collect { result ->
-                                when (result) {
-                                    is AuthResult.Authenticating -> _state.update {
-                                        it.copy(isAuthenticating = true)
-                                    }
-                                    else -> _state.update {
-                                        it.copy(isAuthenticating = false)
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    data.fold(onError) {}
                 }
             }
             else -> Unit

@@ -1,16 +1,15 @@
 package com.numq.firebasechat.auth
 
-import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.Flow
 
 interface AuthApi {
-    val authenticationId: Flow<String>
-    fun signInByEmail(email: String, password: String): Flow<AuthResult>
+    fun getAuthenticationState(): Flow<AuthenticationState>
+    fun signInByEmail(email: String, password: String): Unit?
     fun signUpByEmail(
         email: String,
         password: String,
-        onSignUp: (FirebaseUser?) -> Unit
-    ): Flow<AuthResult>
+        onSignUp: (String) -> Boolean
+    ): Unit?
 
-    fun signOut(): Flow<AuthResult>
+    fun signOut()
 }

@@ -59,12 +59,12 @@ class UserService @Inject constructor(
         }
     }
 
-    override fun createUser(id: String, email: String) =
+    override fun createUser(id: String, name: String?, email: String) =
         collection.document(id).set(
             User(
                 id = id,
                 email = email,
-                name = null,
+                name = name,
                 isOnline = true,
                 lastSeenAt = System.currentTimeMillis()
             )
@@ -82,26 +82,26 @@ class UserService @Inject constructor(
             it.storage.downloadUrl.addOnSuccessListener { uri ->
                 collection.document(id).update("imageUri", uri.toString())
             }
-        }.continueWithTask {
+        }.onSuccessTask {
             collection.document(id).get()
         }
 
     override fun updateName(id: String, name: String) = collection.document(id).update(
         "name",
         name
-    ).continueWithTask {
+    ).onSuccessTask {
         collection.document(id).get()
     }
 
     override fun updateEmail(id: String, email: String) = collection.document(id).update(
         "email",
         email
-    ).continueWithTask {
+    ).onSuccessTask {
         collection.document(id).get()
     }
 
     override fun changePassword(id: String, password: String) =
-        auth.currentUser?.updatePassword(password)?.continueWithTask {
+        auth.currentUser?.updatePassword(password)?.onSuccessTask {
             collection.document(id).get()
         }
 

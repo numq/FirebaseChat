@@ -2,7 +2,8 @@ package com.numq.firebasechat.navigation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.numq.firebasechat.auth.GetAuthenticationId
+import com.numq.firebasechat.auth.AuthenticationState
+import com.numq.firebasechat.auth.GetAuthenticationState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,19 +13,34 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RouterViewModel @Inject constructor(
-    getAuthenticationId: GetAuthenticationId
+    getAuthenticationState: GetAuthenticationState
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(RouterState())
     val state = _state.asStateFlow()
 
     init {
-        getAuthenticationId.invoke(Unit) { data ->
+        getAuthenticationState.invoke(Unit) { data ->
             data.fold(onError) {
                 viewModelScope.launch {
-                    it.collect { id ->
-                        _state.update {
-                            it.copy(userId = id, isLoading = false)
+                    it.collect { authState ->
+                        when (authState) {
+                            is AuthenticationState.Authenticating ->
+                                _state.update {
+                                    it.copy(authenticating = true)
+                                }
+                            is AuthenticationState.Authenticated ->
+                                _state.update {
+                                    it.copy(userId = authState.userId, authenticating = false)
+                                }
+                            is AuthenticationState.Unauthenticated ->
+                                _state.update {
+                                    it.copy(userId = null, authenticating = false)
+                                }
+                            is AuthenticationState.Failure ->
+                                _state.update {
+                                    it.copy(exception = authState.exception, authenticating = false)
+                                }
                         }
                     }
                 }

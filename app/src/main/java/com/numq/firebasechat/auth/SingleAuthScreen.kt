@@ -50,12 +50,20 @@ fun SingleAuthScreen(
     }
 
     LaunchedEffect(email, password, confirmedPassword) {
-        val emailFilled = email.isNotBlank() && (email.length in validator.emailConstraints)
-        val passwordFilled =
-            password.isNotBlank() && (password.length in validator.passwordConstraints)
+        val emailFilled = listOf(
+            email.isNotBlank(),
+            (email.length in validator.emailConstraints),
+            validator.emailPattern.matches(email)
+        ).all { true }
+        val passwordFilled = listOf(
+            password.isNotBlank(),
+            (password.length in validator.passwordConstraints)
+        ).all { true }
         if (isSignUp) {
-            val confirmedPasswordFilled =
-                confirmedPassword.isNotBlank() && (confirmedPassword.length in validator.passwordConstraints)
+            val confirmedPasswordFilled = listOf(
+                confirmedPassword.isNotBlank(),
+                (confirmedPassword.length in validator.passwordConstraints)
+            ).all { true }
             setFieldsAreFilled(emailFilled && passwordFilled && confirmedPasswordFilled)
         } else {
             setFieldsAreFilled(emailFilled && passwordFilled)

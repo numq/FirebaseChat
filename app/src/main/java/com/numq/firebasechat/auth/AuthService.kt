@@ -1,13 +1,11 @@
 package com.numq.firebasechat.auth
 
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -20,9 +18,17 @@ class AuthService @Inject constructor(
     private val coroutineContext = Dispatchers.Default + Job()
     private val coroutineScope = CoroutineScope(coroutineContext)
 
-    override val authenticationId = callbackFlow {
+    override fun getAuthenticationState() = callbackFlow {
+        coroutineScope.launch { send(AuthenticationState.Authenticating) }
         val listener = FirebaseAuth.AuthStateListener {
-            coroutineScope.launch { it.currentUser?.uid?.let { id -> send(id) } }
+            try {
+                it.currentUser?.let { user ->
+                    coroutineScope.launch { send(AuthenticationState.Authenticated(user.uid)) }
+                } ?: coroutineScope.launch { send(AuthenticationState.Unauthenticated) }
+            } catch (e: Exception) {
+                coroutineScope.launch { send(AuthenticationState.Failure(e)) }
+                close(e)
+            }
         }
         auth.addAuthStateListener(listener)
         awaitClose {
@@ -30,35 +36,30 @@ class AuthService @Inject constructor(
         }
     }
 
-    override fun signInByEmail(email: String, password: String) = flow {
-        emit(AuthResult.Authenticating)
-        auth.signInWithEmailAndPassword(email, password).addOnSuccessListener {
-            coroutineScope.launch { emit(AuthResult.Success) }
-        }.addOnFailureListener {
-            coroutineScope.launch { emit(AuthResult.Failure) }
+    override fun signInByEmail(email: String, password: String) =
+        with(auth.signInWithEmailAndPassword(email, password)) {
+            if (isSuccessful) Unit
+            else null
         }
+
+    override fun signUpByEmail(
+        email: String,
+        password: String,
+        onSignUp: (String) -> Boolean
+    ) = with(auth.createUserWithEmailAndPassword(email, password).addOnSuccessListener {
+        it.user?.let { user ->
+            if (!onSignUp(user.uid)) {
+                user.delete()
+                it.credential?.let { credential -> user.reauthenticate(credential) }
+                throw AuthException
+            }
+        } ?: throw AuthException
+    }) {
+        if (isSuccessful) Unit
+        else null
     }
 
-    override fun signUpByEmail(email: String, password: String, onSignUp: (FirebaseUser?) -> Unit) =
-        flow {
-            emit(AuthResult.Authenticating)
-            auth.createUserWithEmailAndPassword(email, password).addOnSuccessListener { result ->
-                coroutineScope.launch { emit(AuthResult.Success) }
-                    .invokeOnCompletion { onSignUp(result.user) }
-            }.addOnFailureListener {
-                coroutineScope.launch { emit(AuthResult.Failure) }
-            }
-        }
-
-    override fun signOut() = flow {
-        emit(AuthResult.Authenticating)
-        coroutineScope.launch { auth.signOut() }.invokeOnCompletion {
-            if (auth.currentUser != null) {
-                coroutineScope.launch { emit(AuthResult.Failure) }
-            } else {
-                coroutineScope.launch { emit(AuthResult.Success) }
-            }
-        }
+    override fun signOut() {
+        auth.signOut()
     }
-
 }

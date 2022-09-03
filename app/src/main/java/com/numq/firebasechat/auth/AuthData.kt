@@ -12,18 +12,15 @@ class AuthData @Inject constructor(
     private val userService: UserApi
 ) : AuthRepository {
 
-    override val authenticationId = authService.authenticationId.wrap()
+    override suspend fun getAuthenticationState() =
+        authService.getAuthenticationState().wrap().leftIfNull { AuthException }
 
     override suspend fun signInByEmail(email: String, password: String) =
         authService.signInByEmail(email, password).wrap().leftIfNull { AuthException }
 
     override suspend fun signUpByEmail(name: String, email: String, password: String) =
-        authService.signUpByEmail(email, password) { user ->
-            user?.uid?.let { id ->
-                userService.createUser(id, email).addOnSuccessListener {
-                    userService.updateName(id, name)
-                }
-            }
+        authService.signUpByEmail(email, password) { id ->
+            runCatching { userService.createUser(id, name, email).isSuccessful }.isSuccess
         }.wrap().leftIfNull { AuthException }
 
     override suspend fun signOut() = authService.signOut().wrap()
