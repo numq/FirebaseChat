@@ -12,21 +12,26 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
 
     @Binds
+    @Singleton
     abstract fun bindAuthRepository(repository: AuthData): AuthRepository
 
     @Binds
+    @Singleton
     abstract fun bindChatRepository(repository: ChatData): ChatRepository
 
     @Binds
+    @Singleton
     abstract fun bindMessageRepository(repository: MessageData): MessageRepository
 
     @Binds
+    @Singleton
     abstract fun bindUserRepository(repository: UserData): UserRepository
 
 }
