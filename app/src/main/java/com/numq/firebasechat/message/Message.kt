@@ -8,5 +8,5 @@ data class Message(
     val delivered: Boolean = false,
     val read: Boolean = false,
     val sentAt: Long = System.currentTimeMillis(),
-    val updatedAt: Long? = null
+    val updatedAt: Long = System.currentTimeMillis()
 )

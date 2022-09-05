@@ -43,7 +43,8 @@ val DocumentSnapshot.message
             text != null &&
             delivered != null &&
             read != null &&
-            sentAt != null
+            sentAt != null &&
+            updatedAt != null
         ) {
             Message(
                 id = id,

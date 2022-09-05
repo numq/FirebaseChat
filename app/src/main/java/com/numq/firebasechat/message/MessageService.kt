@@ -60,9 +60,7 @@ class MessageService @Inject constructor(
                     senderId = userId,
                     text = text,
                     delivered = true,
-                    read = false,
-                    sentAt = System.currentTimeMillis(),
-                    updatedAt = null
+                    read = false
                 )
             ).onSuccessTask {
                 collection.document(id).get()
