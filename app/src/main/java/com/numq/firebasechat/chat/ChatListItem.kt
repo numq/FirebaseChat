@@ -92,7 +92,7 @@ fun ChatListItem(
                             }
                             Spacer(Modifier.width(4.dp))
                             Text(
-                                SimpleDateFormat.getTimeInstance().format(Date(sentAt)),
+                                SimpleDateFormat.getDateTimeInstance().format(Date(sentAt)),
                                 fontWeight = FontWeight.Thin,
                                 color = Color.Black
                             )

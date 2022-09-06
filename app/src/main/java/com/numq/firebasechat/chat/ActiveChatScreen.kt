@@ -3,6 +3,7 @@ package com.numq.firebasechat.chat
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,10 +21,14 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.numq.firebasechat.divider.MessageDateDivider
 import com.numq.firebasechat.list.isReachedTheEnd
 import com.numq.firebasechat.message.MessageChatItem
 import com.numq.firebasechat.user.User
+import java.text.SimpleDateFormat
+import java.util.*
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ActiveChatScreen(
     chatVisible: Boolean,
@@ -103,11 +108,22 @@ fun ActiveChatScreen(
                             state = messagesState,
                             reverseLayout = true
                         ) {
-                            items(state.messages) { message ->
-                                LaunchedEffect(!message.read && message.senderId != currentUser.id) {
-                                    vm.readMessage(message.id)
+                            state.messages.groupBy {
+                                SimpleDateFormat("dd/MM/YY").format(
+                                    Date(it.updatedAt)
+                                )
+                            }.forEach { (_, list) ->
+                                items(list) { message ->
+                                    LaunchedEffect(!message.read && message.senderId != currentUser.id) {
+                                        vm.readMessage(message.id)
+                                    }
+                                    MessageChatItem(currentUser, message, maxWidth)
                                 }
-                                MessageChatItem(currentUser, message, maxWidth)
+                                list.firstOrNull()?.also {
+                                    stickyHeader {
+                                        MessageDateDivider(it.updatedAt)
+                                    }
+                                }
                             }
                         }
                         Row(
