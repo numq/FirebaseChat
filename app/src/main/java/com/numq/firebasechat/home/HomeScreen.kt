@@ -58,7 +58,7 @@ fun HomeScreen(
 
     chatState.isReachedTheEnd(3) {
         state.chats.lastOrNull()?.let {
-            vm.observeChats(userId, it.id, 15L)
+            vm.loadMoreChats(userId, it.id, 15L)
         }
     }
 

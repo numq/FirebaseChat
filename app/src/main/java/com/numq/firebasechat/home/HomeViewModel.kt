@@ -6,12 +6,12 @@ import com.numq.firebasechat.auth.SignOut
 import com.numq.firebasechat.chat.Chat
 import com.numq.firebasechat.chat.CreateChat
 import com.numq.firebasechat.chat.GetChats
-import com.numq.firebasechat.message.GetLatestMessages
 import com.numq.firebasechat.user.GetUserById
 import com.numq.firebasechat.user.UploadImage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -20,7 +20,6 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val getUserById: GetUserById,
     private val getChats: GetChats,
-    private val getLatestMessages: GetLatestMessages,
     private val createChat: CreateChat,
     private val uploadImage: UploadImage,
     private val signOut: SignOut
@@ -47,21 +46,27 @@ class HomeViewModel @Inject constructor(
             data.fold(onError) { chats ->
                 viewModelScope.launch {
                     chats.collect { chat ->
-                        if (chat.id !in state.value.chats.map { c -> c.id }) {
-                            _state.update {
-                                it.copy(
-                                    chats = it.chats.plus(chat)
-                                        .sortedByDescending { c -> c.updatedAt }
-                                )
-                            }
-                        } else {
-                            _state.update {
-                                it.copy(
-                                    chats = it.chats.map { prevChat ->
-                                        if (prevChat.id == chat.id) chat else prevChat
-                                    }
-                                )
-                            }
+                        _state.update {
+                            it.copy(
+                                chats = it.chats.filter { c -> c.id != chat.id }.plus(chat)
+                                    .sortedByDescending { c -> c.updatedAt }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+    fun loadMoreChats(userId: String, lastChatId: String?, limit: Long) =
+        getChats.invoke(Triple(userId, lastChatId, limit)) { data ->
+            data.fold(onError) { chats ->
+                viewModelScope.launch {
+                    chats.toList().forEach { chat ->
+                        _state.update {
+                            it.copy(
+                                chats = it.chats.filter { c -> c.id != chat.id }.plus(chat)
+                                    .sortedByDescending { c -> c.updatedAt }
+                            )
                         }
                     }
                 }
