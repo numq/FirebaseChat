@@ -30,44 +30,42 @@ class MessageData @Inject constructor(
     override suspend fun createMessage(chatId: String, userId: String, text: String) =
         messageService.createMessage(chatId, userId, text)
             .wrap()
-            .tap {
-                chatService.getChatById(chatId).addOnSuccessListener { document ->
-                    document.chat?.let { chat ->
-                        chatService.updateChat(chat.copy(lastMessage = it.message))
-                    }
-                }
-            }
-            .map { true }
+            .map {
+                if (chatService.getChatById(chatId).addOnSuccessListener { document ->
+                        document.chat?.let { chat ->
+                            chatService.updateChat(chat.copy(lastMessage = it.message))
+                        }
+                    }.isSuccessful) true else null
+            }.leftIfNull { MessageException }
 
     override suspend fun readMessage(id: String) =
         messageService.readMessage(id)
             .wrap()
-            .map { it.message }
-            .tap { message ->
-                message?.let {
-                    chatService.getChatById(message.chatId).addOnSuccessListener { document ->
-                        document.chat?.let { chat ->
-                            if (chat.lastMessage?.id == message.id) {
-                                chatService.updateChat(chat.copy(lastMessage = message))
+            .map {
+                it.message?.let { message ->
+                    if (chatService.getChatById(message.chatId).addOnSuccessListener { document ->
+                            document.chat?.let { chat ->
+                                if (chat.lastMessage?.id == message.id) {
+                                    chatService.updateChat(chat.copy(lastMessage = message))
+                                }
                             }
-                        }
-                    }
+                        }.isSuccessful) message else null
                 }
-            }
-            .leftIfNull { MessageException }
+            }.leftIfNull { MessageException }
 
     override suspend fun deleteMessage(id: String) =
         messageService.deleteMessage(id)
             .wrap()
-            .tap {
-                it?.addOnSuccessListener { document ->
-                    document.message?.let { message ->
-                        chatService.getChatById(message.chatId).addOnSuccessListener { document ->
-                            document.chat?.let { chat ->
-                                chatService.updateChat(chat.copy(lastMessage = message))
-                            }
+            .map {
+                if (it?.addOnSuccessListener { document ->
+                        document.message?.let { message ->
+                            chatService.getChatById(message.chatId)
+                                .addOnSuccessListener { document ->
+                                    document.chat?.let { chat ->
+                                        chatService.updateChat(chat.copy(lastMessage = message))
+                                    }
+                                }
                         }
-                    }
-                }
-            }.map { id }
+                    }?.isSuccessful == true) id else null
+            }.leftIfNull { MessageException }
 }
