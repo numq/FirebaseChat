@@ -1,9 +1,10 @@
 package com.numq.firebasechat.chat
 
 import com.google.android.gms.tasks.Task
-import com.google.firebase.firestore.DocumentSnapshot
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.numq.firebasechat.mapper.chat
 import com.numq.firebasechat.message.Message
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -42,7 +43,9 @@ class ChatService @Inject constructor(
                 error?.let { close(error) }
                 coroutineScope.launch {
                     value?.documents?.forEach {
-                        send(it)
+                        it.chat?.let { chat ->
+                            send(chat)
+                        }
                     }
                 }
             }
@@ -51,9 +54,11 @@ class ChatService @Inject constructor(
         }
     }
 
-    override fun getChatById(id: String) = collection.document(id).get()
+    override fun getChatById(id: String) = collection.document(id).get().onSuccessTask {
+        Tasks.forResult(it.chat)
+    }
 
-    override fun createChat(userId: String, anotherId: String): Task<DocumentSnapshot> {
+    override fun createChat(userId: String, anotherId: String): Task<Chat?> {
         val ids = arrayOf(userId, anotherId).sorted()
         val id = ids.joinToString("")
         collection.document(id).get().addOnCompleteListener {
@@ -70,17 +75,23 @@ class ChatService @Inject constructor(
                 )
             }
         }
-        return collection.document(id).get()
+        return collection.document(id).get().onSuccessTask {
+            Tasks.forResult(it.chat)
+        }
     }
 
     override fun updateLastMessage(chatId: String, message: Message) =
         collection.document(chatId).update("lastMessage", message).continueWithTask {
-            collection.document(chatId).get()
+            collection.document(chatId).get().onSuccessTask {
+                Tasks.forResult(it.chat)
+            }
         }
 
     override fun updateChat(chat: Chat) =
         collection.document(chat.id).set(chat).continueWithTask {
-            collection.document(chat.id).get()
+            collection.document(chat.id).get().onSuccessTask {
+                Tasks.forResult(it.chat)
+            }
         }
 
     override fun deleteChat(id: String) = collection.document(id).delete()
