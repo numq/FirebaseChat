@@ -2,7 +2,6 @@ package com.numq.firebasechat.message
 
 import arrow.core.leftIfNull
 import com.numq.firebasechat.chat.ChatService
-import com.numq.firebasechat.mapper.chat
 import com.numq.firebasechat.mapper.message
 import com.numq.firebasechat.wrapper.wrap
 import kotlinx.coroutines.flow.mapNotNull
@@ -30,10 +29,10 @@ class MessageData @Inject constructor(
     override suspend fun createMessage(chatId: String, userId: String, text: String) =
         messageService.createMessage(chatId, userId, text)
             .wrap()
-            .map {
-                if (chatService.getChatById(chatId).addOnSuccessListener { document ->
-                        document.chat?.let { chat ->
-                            chatService.updateChat(chat.copy(lastMessage = it.message))
+            .map { document ->
+                if (chatService.getChatById(chatId).addOnSuccessListener { chat ->
+                        chat?.let {
+                            chatService.updateChat(chat.copy(lastMessage = document.message))
                         }
                     }.isSuccessful) true else null
             }.leftIfNull { MessageException }
@@ -43,8 +42,8 @@ class MessageData @Inject constructor(
             .wrap()
             .map {
                 it.message?.let { message ->
-                    if (chatService.getChatById(message.chatId).addOnSuccessListener { document ->
-                            document.chat?.let { chat ->
+                    if (chatService.getChatById(message.chatId).addOnSuccessListener { chat ->
+                            chat?.let {
                                 if (chat.lastMessage?.id == message.id) {
                                     chatService.updateChat(chat.copy(lastMessage = message))
                                 }
@@ -60,8 +59,8 @@ class MessageData @Inject constructor(
                 if (it?.addOnSuccessListener { document ->
                         document.message?.let { message ->
                             chatService.getChatById(message.chatId)
-                                .addOnSuccessListener { document ->
-                                    document.chat?.let { chat ->
+                                .addOnSuccessListener { chat ->
+                                    chat?.let {
                                         chatService.updateChat(chat.copy(lastMessage = message))
                                     }
                                 }
