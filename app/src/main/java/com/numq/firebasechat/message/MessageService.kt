@@ -1,7 +1,9 @@
 package com.numq.firebasechat.message
 
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.numq.firebasechat.mapper.message
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -33,7 +35,9 @@ class MessageService @Inject constructor(
                 error?.let { close(error) }
                 coroutineScope.launch {
                     value?.documents?.forEach() {
-                        send(it)
+                        it.message?.let { message ->
+                            send(message)
+                        }
                     }
                 }
             }
@@ -49,6 +53,8 @@ class MessageService @Inject constructor(
                 .limit(limit)
                 .startAfter(it)
                 .get()
+        }.onSuccessTask {
+            Tasks.forResult(it.documents.mapNotNull { document -> document.message })
         }
 
     override fun createMessage(chatId: String, userId: String, text: String) =
@@ -63,17 +69,23 @@ class MessageService @Inject constructor(
                     read = false
                 )
             ).onSuccessTask {
-                collection.document(id).get()
+                collection.document(id).get().onSuccessTask {
+                    Tasks.forResult(it.message)
+                }
             }
         }
 
     override fun readMessage(id: String) =
         collection.document(id).update("read", true).onSuccessTask {
-            collection.document(id).get()
+            collection.document(id).get().onSuccessTask {
+                Tasks.forResult(it.message)
+            }
         }
 
     override fun deleteMessage(id: String) = with(collection.document("id")) {
-        val task = get()
+        val task = get().onSuccessTask {
+            Tasks.forResult(it.message)
+        }
         delete()
         task
     }
