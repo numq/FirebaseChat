@@ -1,9 +1,11 @@
 package com.numq.firebasechat.user
 
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
+import com.numq.firebasechat.mapper.user
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -36,7 +38,9 @@ class UserService @Inject constructor(
                 error?.let { close(error) }
                 coroutineScope.launch {
                     value?.documents?.forEach {
-                        send(it)
+                        it.user?.let { user ->
+                            send(user)
+                        }
                     }
                 }
             }
@@ -50,7 +54,9 @@ class UserService @Inject constructor(
             error?.let { close(error) }
             coroutineScope.launch {
                 value?.let {
-                    send(it)
+                    it.user?.let { user ->
+                        send(user)
+                    }
                 }
             }
         }
@@ -83,26 +89,34 @@ class UserService @Inject constructor(
                 collection.document(id).update("imageUri", uri.toString())
             }
         }.onSuccessTask {
-            collection.document(id).get()
+            collection.document(id).get().onSuccessTask {
+                Tasks.forResult(it.user)
+            }
         }
 
     override fun updateName(id: String, name: String) = collection.document(id).update(
         "name",
         name
     ).onSuccessTask {
-        collection.document(id).get()
+        collection.document(id).get().onSuccessTask {
+            Tasks.forResult(it.user)
+        }
     }
 
     override fun updateEmail(id: String, email: String) = collection.document(id).update(
         "email",
         email
     ).onSuccessTask {
-        collection.document(id).get()
+        collection.document(id).get().onSuccessTask {
+            Tasks.forResult(it.user)
+        }
     }
 
     override fun changePassword(id: String, password: String) =
         auth.currentUser?.updatePassword(password)?.onSuccessTask {
-            collection.document(id).get()
+            collection.document(id).get().onSuccessTask {
+                Tasks.forResult(it.user)
+            }
         }
 
     override fun deleteUser(id: String) = collection.document(id).delete()
