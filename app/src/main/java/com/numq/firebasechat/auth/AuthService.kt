@@ -38,8 +38,7 @@ class AuthService @Inject constructor(
 
     override fun signInByEmail(email: String, password: String) =
         with(auth.signInWithEmailAndPassword(email, password)) {
-            if (isSuccessful) Unit
-            else null
+            isSuccessful
         }
 
     override fun signUpByEmail(
@@ -55,11 +54,9 @@ class AuthService @Inject constructor(
             }
         } ?: throw AuthException
     }) {
-        if (isSuccessful) Unit
-        else null
+        isSuccessful
     }
 
-    override fun signOut() {
-        auth.signOut()
-    }
+    override fun signOut() = auth.signOut().let { auth.currentUser == null }
+
 }

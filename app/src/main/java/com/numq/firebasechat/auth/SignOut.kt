@@ -5,6 +5,6 @@ import javax.inject.Inject
 
 class SignOut @Inject constructor(
     private val repository: AuthRepository
-) : UseCase<Unit, Unit>() {
+) : UseCase<Unit, Boolean>() {
     override suspend fun execute(arg: Unit) = repository.signOut()
 }

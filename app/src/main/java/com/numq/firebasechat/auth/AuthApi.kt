@@ -4,12 +4,12 @@ import kotlinx.coroutines.flow.Flow
 
 interface AuthApi {
     fun getAuthenticationState(): Flow<AuthenticationState>
-    fun signInByEmail(email: String, password: String): Unit?
+    fun signInByEmail(email: String, password: String): Boolean
     fun signUpByEmail(
         email: String,
         password: String,
         onSignUp: (String) -> Boolean
-    ): Unit?
+    ): Boolean
 
-    fun signOut()
+    fun signOut(): Boolean
 }

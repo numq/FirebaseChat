@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
+import com.numq.firebasechat.auth.AuthException
 import com.numq.firebasechat.mapper.user
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -74,7 +75,13 @@ class UserService @Inject constructor(
                 isOnline = true,
                 lastSeenAt = System.currentTimeMillis()
             )
-        )
+        ).continueWithTask {
+            collection.document(id).get().onSuccessTask {
+                it.user?.let { user ->
+                    Tasks.forResult(user)
+                } ?: Tasks.forException(Exception(AuthException))
+            }
+        }
 
     override fun updateUserActivity(id: String, state: Boolean) = collection.document(id).update(
         "isOnline",

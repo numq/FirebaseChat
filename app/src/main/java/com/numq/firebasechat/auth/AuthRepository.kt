@@ -8,13 +8,13 @@ interface AuthRepository {
     suspend fun signInByEmail(
         email: String,
         password: String
-    ): Either<Exception, Unit>
+    ): Either<Exception, Boolean>
 
     suspend fun signUpByEmail(
         name: String,
         email: String,
         password: String
-    ): Either<Exception, Unit>
+    ): Either<Exception, Boolean>
 
-    suspend fun signOut(): Either<Exception, Unit>
+    suspend fun signOut(): Either<Exception, Boolean>
 }
