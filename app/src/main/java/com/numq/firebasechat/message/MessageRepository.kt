@@ -19,7 +19,7 @@ interface MessageRepository {
         chatId: String,
         userId: String,
         text: String
-    ): Either<Exception, Boolean>
+    ): Either<Exception, Message>
 
     suspend fun readMessage(id: String): Either<Exception, Message>
     suspend fun deleteMessage(id: String): Either<Exception, String>

@@ -57,7 +57,7 @@ class ActiveChatViewModel @Inject constructor(
     fun sendMessage(chatId: String, userId: String, text: String, onMessageSent: () -> Unit) =
         sendMessage.invoke(Triple(chatId, userId, text)) { data ->
             data.fold(onError) {
-                if (it) onMessageSent()
+                onMessageSent()
             }
         }
 
