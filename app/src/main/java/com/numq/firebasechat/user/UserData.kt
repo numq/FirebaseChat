@@ -42,8 +42,6 @@ class UserData @Inject constructor(
             ?.leftIfNull { UserException } ?: UserException.left()
 
     override suspend fun deleteUser(id: String) =
-        userService.deleteUser(id)
-            .wrap()
-            .map { id }
+        userService.deleteUser(id).wrap().leftIfNull { UserException }
 
 }
