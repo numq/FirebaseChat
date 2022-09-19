@@ -78,11 +78,12 @@ class ChatRepositoryTest {
 
     @Test
     fun `should update chat and return it`() = runBlocking {
-        val chat = Chat(name = "test")
-        every { service.updateChat(chat) } returns Tasks.forResult(chat)
+        val (name, updatedName) = Pair("0", "1")
+        val chat = Chat(name = name)
+        every { service.updateChat(chat) } returns Tasks.forResult(chat.copy(name = updatedName))
         val output = repository.updateChat(chat)
         assertIs<Either<Exception, Chat>>(output)
-        assertEquals(chat.right(), output)
+        assertEquals(chat.copy(name = updatedName).right(), output)
     }
 
     @Test
