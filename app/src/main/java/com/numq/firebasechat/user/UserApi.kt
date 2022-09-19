@@ -12,5 +12,5 @@ interface UserApi {
     fun updateName(id: String, name: String): Task<User?>
     fun updateEmail(id: String, email: String): Task<User?>
     fun changePassword(id: String, password: String): Task<User?>?
-    fun deleteUser(id: String): Task<Void>
+    fun deleteUser(id: String): Task<String>
 }

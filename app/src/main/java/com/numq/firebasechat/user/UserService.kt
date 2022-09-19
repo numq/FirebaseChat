@@ -126,6 +126,7 @@ class UserService @Inject constructor(
             }
         }
 
-    override fun deleteUser(id: String) = collection.document(id).delete()
+    override fun deleteUser(id: String) =
+        collection.document(id).delete().onSuccessTask { Tasks.forResult(id) }
 
 }
