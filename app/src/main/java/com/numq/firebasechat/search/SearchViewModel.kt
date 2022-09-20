@@ -39,13 +39,11 @@ class SearchViewModel @Inject constructor(
 
     fun searchByQuery(query: String) {
         debounce {
-            getUsersByQuery.invoke(Pair(query, DEFAULT_LIMIT)) { data ->
-                data.fold(onError) { users ->
-                    viewModelScope.launch {
-                        users.collect { user ->
-                            _state.update {
-                                SearchState(searchResults = it.searchResults.plus(user).distinct())
-                            }
+            getUsersByQuery.invoke(Pair(query, DEFAULT_LIMIT), onError) { users ->
+                viewModelScope.launch {
+                    users.collect { user ->
+                        _state.update {
+                            SearchState(searchResults = it.searchResults.plus(user).distinct())
                         }
                     }
                 }

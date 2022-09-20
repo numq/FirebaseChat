@@ -25,17 +25,15 @@ class ActiveChatViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     fun observeLastMessages(chatId: String, limit: Long) =
-        getLatestMessages.invoke(Pair(chatId, limit)) { data ->
-            data.fold(onError) { messages ->
-                viewModelScope.launch {
-                    messages.collect { msg ->
-                        if (msg.id !in state.value.messages.map { m -> m.id }) {
-                            _state.update {
-                                it.copy(
-                                    messages = listOf(msg).plus(it.messages)
-                                        .sortedByDescending { m -> m.sentAt }
-                                )
-                            }
+        getLatestMessages.invoke(Pair(chatId, limit), onError) { messages ->
+            viewModelScope.launch {
+                messages.collect { msg ->
+                    if (msg.id !in state.value.messages.map { m -> m.id }) {
+                        _state.update {
+                            it.copy(
+                                messages = listOf(msg).plus(it.messages)
+                                    .sortedByDescending { m -> m.sentAt }
+                            )
                         }
                     }
                 }
@@ -43,30 +41,24 @@ class ActiveChatViewModel @Inject constructor(
         }
 
     fun loadMore(chatId: String, lastMessageId: String, limit: Long) =
-        getMessages.invoke(Triple(chatId, lastMessageId, limit)) { data ->
-            data.fold(onError) { messages ->
-                _state.update {
-                    it.copy(
-                        messages = it.messages.plus(messages.filter { msg -> msg.id !in it.messages.map { m -> m.id } }
-                            .sortedByDescending { m -> m.sentAt })
-                    )
-                }
+        getMessages.invoke(Triple(chatId, lastMessageId, limit), onError) { messages ->
+            _state.update {
+                it.copy(
+                    messages = it.messages.plus(messages.filter { msg -> msg.id !in it.messages.map { m -> m.id } }
+                        .sortedByDescending { m -> m.sentAt })
+                )
             }
         }
 
     fun sendMessage(chatId: String, userId: String, text: String, onMessageSent: () -> Unit) =
-        sendMessage.invoke(Triple(chatId, userId, text)) { data ->
-            data.fold(onError) {
-                onMessageSent()
-            }
+        sendMessage.invoke(Triple(chatId, userId, text), onError) {
+            onMessageSent()
         }
 
     fun readMessage(id: String) =
-        readMessage.invoke(id) { data ->
-            data.fold(onError) { updatedMessage ->
-                _state.update {
-                    it.copy(messages = it.messages.map { msg -> if (msg.id == updatedMessage.id) updatedMessage else msg })
-                }
+        readMessage.invoke(id, onError) { updatedMessage ->
+            _state.update {
+                it.copy(messages = it.messages.map { msg -> if (msg.id == updatedMessage.id) updatedMessage else msg })
             }
         }
 

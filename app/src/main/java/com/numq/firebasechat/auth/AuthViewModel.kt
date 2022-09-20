@@ -28,9 +28,7 @@ class AuthViewModel @Inject constructor(
         }
         when (state.value.authType) {
             AuthType.EmailPassword -> {
-                signInByEmail.invoke(Pair(email, password)) { data ->
-                    data.fold(onError) {}
-                }
+                signInByEmail.invoke(Pair(email, password), onError)
             }
             else -> Unit
         }
@@ -42,9 +40,7 @@ class AuthViewModel @Inject constructor(
         }
         when (state.value.authType) {
             AuthType.EmailPassword -> {
-                signUpByEmail.invoke(Triple(name, email, password)) { data ->
-                    data.fold(onError) {}
-                }
+                signUpByEmail.invoke(Triple(name, email, password), onError)
             }
             else -> Unit
         }

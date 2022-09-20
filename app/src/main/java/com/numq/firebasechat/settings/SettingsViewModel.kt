@@ -22,42 +22,38 @@ class SettingsViewModel @Inject constructor(
     private val _state = MutableStateFlow(SettingsState())
     val state = _state.asStateFlow()
 
-    fun getUserById(id: String) = getUserById.invoke(id) { data ->
-        data.fold(onError) { user ->
-            viewModelScope.launch {
-                user.collect { user ->
-                    _state.update {
-                        it.copy(currentUser = user)
-                    }
+    fun getUserById(id: String) = getUserById.invoke(id, onError) { user ->
+        viewModelScope.launch {
+            user.collect { user ->
+                _state.update {
+                    it.copy(currentUser = user)
                 }
             }
         }
+
     }
 
     fun uploadImage(id: String, byteArray: ByteArray) =
-        uploadImage.invoke(Pair(id, byteArray)) { data ->
-            data.fold(onError) { user ->
-                _state.update { it.copy(currentUser = user) }
-            }
+        uploadImage.invoke(Pair(id, byteArray), onError) { user ->
+            _state.update { it.copy(currentUser = user) }
+
         }
 
-    fun updateName(id: String, name: String) = updateName.invoke(Pair(id, name)) { data ->
-        data.fold(onError) { user ->
-            _state.update { it.copy(currentUser = user) }
-        }
+    fun updateName(id: String, name: String) = updateName.invoke(Pair(id, name), onError) { user ->
+        _state.update { it.copy(currentUser = user) }
+
     }
 
-    fun updateEmail(id: String, email: String) = updateEmail.invoke(Pair(id, email)) { data ->
-        data.fold(onError) { user ->
+    fun updateEmail(id: String, email: String) =
+        updateEmail.invoke(Pair(id, email), onError) { user ->
             _state.update { it.copy(currentUser = user) }
+
         }
-    }
 
     fun changePassword(id: String, password: String) =
-        changePassword.invoke(Pair(id, password)) { data ->
-            data.fold(onError) { user ->
-                _state.update { it.copy(currentUser = user) }
-            }
+        changePassword.invoke(Pair(id, password), onError) { user ->
+            _state.update { it.copy(currentUser = user) }
+
         }
 
     private val onError: (Exception) -> Unit = { exception ->

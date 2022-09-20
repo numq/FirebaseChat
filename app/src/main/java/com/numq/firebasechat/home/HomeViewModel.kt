@@ -29,45 +29,39 @@ class HomeViewModel @Inject constructor(
     val state = _state.asStateFlow()
 
     fun observeCurrentUser(userId: String) =
-        getUserById.invoke(userId) { data ->
-            data.fold(onError) { user ->
-                viewModelScope.launch {
-                    user.collect { user ->
-                        _state.update {
-                            it.copy(currentUser = user)
-                        }
+        getUserById.invoke(userId, onError) { user ->
+            viewModelScope.launch {
+                user.collect { user ->
+                    _state.update {
+                        it.copy(currentUser = user)
                     }
                 }
             }
         }
 
     fun observeChats(userId: String, lastChatId: String?, limit: Long) =
-        getChats.invoke(Triple(userId, lastChatId, limit)) { data ->
-            data.fold(onError) { chats ->
-                viewModelScope.launch {
-                    chats.collect { chat ->
-                        _state.update {
-                            it.copy(
-                                chats = it.chats.filter { c -> c.id != chat.id }.plus(chat)
-                                    .sortedByDescending { c -> c.updatedAt }
-                            )
-                        }
+        getChats.invoke(Triple(userId, lastChatId, limit), onError) { chats ->
+            viewModelScope.launch {
+                chats.collect { chat ->
+                    _state.update {
+                        it.copy(
+                            chats = it.chats.filter { c -> c.id != chat.id }.plus(chat)
+                                .sortedByDescending { c -> c.updatedAt }
+                        )
                     }
                 }
             }
         }
 
     fun loadMoreChats(userId: String, lastChatId: String?, limit: Long) =
-        getChats.invoke(Triple(userId, lastChatId, limit)) { data ->
-            data.fold(onError) { chats ->
-                viewModelScope.launch {
-                    chats.toList().forEach { chat ->
-                        _state.update {
-                            it.copy(
-                                chats = it.chats.filter { c -> c.id != chat.id }.plus(chat)
-                                    .sortedByDescending { c -> c.updatedAt }
-                            )
-                        }
+        getChats.invoke(Triple(userId, lastChatId, limit), onError) { chats ->
+            viewModelScope.launch {
+                chats.toList().forEach { chat ->
+                    _state.update {
+                        it.copy(
+                            chats = it.chats.filter { c -> c.id != chat.id }.plus(chat)
+                                .sortedByDescending { c -> c.updatedAt }
+                        )
                     }
                 }
             }
@@ -78,22 +72,16 @@ class HomeViewModel @Inject constructor(
     }
 
     fun createChat(userId: String, anotherId: String) =
-        createChat.invoke(Pair(userId, anotherId)) { data ->
-            data.fold(onError) { chat ->
-                _state.update {
-                    it.copy(activeChat = chat)
-                }
+        createChat.invoke(Pair(userId, anotherId), onError) { chat ->
+            _state.update {
+                it.copy(activeChat = chat)
             }
         }
 
     fun uploadImage(id: String, bytes: ByteArray) =
-        uploadImage.invoke(Pair(id, bytes)) { data ->
-            data.fold(onError) {}
-        }
+        uploadImage.invoke(Pair(id, bytes), onError)
 
-    fun signOut() = signOut.invoke(Unit) { data ->
-        data.fold(onError) {}
-    }
+    fun signOut() = signOut.invoke(Unit, onError)
 
     private val onError: (Exception) -> Unit = { exception ->
         _state.update {
