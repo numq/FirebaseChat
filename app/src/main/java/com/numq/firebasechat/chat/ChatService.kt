@@ -14,9 +14,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class ChatService @Inject constructor(
     firestore: FirebaseFirestore
 ) : ChatApi {

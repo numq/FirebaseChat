@@ -1,13 +1,20 @@
 package com.numq.firebasechat.wrapper
 
 import arrow.core.Either
+import arrow.core.flatten
 import arrow.core.left
-import arrow.core.rightIfNotNull
+import arrow.core.right
 import com.google.android.gms.tasks.Task
+import com.numq.firebasechat.network.NetworkApi
+import com.numq.firebasechat.network.NetworkException
 import kotlinx.coroutines.tasks.await
 
-suspend inline fun <reified T> Task<T>.wrap(): Either<Exception, T> = try {
-    await().rightIfNotNull { exception ?: Exception(T::class.java.simpleName) }
-} catch (e: Exception) {
-    e.left()
-}
+suspend fun <T> Task<T>.wrap() = runCatching { await() }.fold({ it.right() },
+    { Exception(it.localizedMessage).left() })
+
+suspend fun <T> Task<T>.wrap(networkApi: NetworkApi?) = networkApi?.let {
+    Either.conditionally(
+        networkApi.isAvailable,
+        ifFalse = { NetworkException.Default },
+        ifTrue = { wrap() }).flatten()
+} ?: wrap()
