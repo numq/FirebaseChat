@@ -1,9 +1,12 @@
 package com.numq.firebasechat.navigation
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.numq.firebasechat.auth.AuthenticationState
 import com.numq.firebasechat.auth.GetAuthenticationState
+import com.numq.firebasechat.network.GetNetworkStatus
+import com.numq.firebasechat.network.NetworkStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,8 +15,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class RouterViewModel @Inject constructor(
-    getAuthenticationState: GetAuthenticationState
+class NavViewModel @Inject constructor(
+    getAuthenticationState: GetAuthenticationState,
+    getNetworkStatus: GetNetworkStatus
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(RouterState())
@@ -32,6 +36,15 @@ class RouterViewModel @Inject constructor(
     }
 
     init {
+        getNetworkStatus.invoke(Unit, onError) {
+            viewModelScope.launch {
+                it.collect { status ->
+                    _state.update {
+                        RouterState(status = status)
+                    }
+                }
+            }
+        }
         getAuthenticationState.invoke(Unit, onError) {
             viewModelScope.launch {
                 it.collect { authState ->
@@ -46,7 +59,7 @@ class RouterViewModel @Inject constructor(
                             }
                         is AuthenticationState.Unauthenticated ->
                             _state.update {
-                                it.copy(userId = null, authenticating = false)
+                                it.copy(authenticating = false)
                             }
                         is AuthenticationState.Failure ->
                             _state.update {
@@ -55,6 +68,12 @@ class RouterViewModel @Inject constructor(
                     }
                 }
             }
+        }
+    }
+
+    val onNetworkStatus: (NetworkStatus?) -> Unit = { status ->
+        _state.update {
+            it.copy(status = status)
         }
     }
 

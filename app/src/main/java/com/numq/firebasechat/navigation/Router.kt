@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
@@ -19,13 +20,15 @@ import androidx.navigation.compose.rememberNavController
 import com.numq.firebasechat.auth.AuthScreen
 import com.numq.firebasechat.error.ShowError
 import com.numq.firebasechat.home.HomeScreen
+import com.numq.firebasechat.network.NetworkStatus
+import com.numq.firebasechat.network.NetworkStatusNotification
 import com.numq.firebasechat.permission.PermissionsRequired
 import com.numq.firebasechat.settings.SettingsScreen
 import com.numq.firebasechat.splash.SplashScreen
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeout
 
 @Composable
-fun Router(vm: RouterViewModel = hiltViewModel()) {
+fun Router(vm: NavViewModel = hiltViewModel()) {
 
     val navController = rememberNavController()
     val scaffoldState = rememberScaffoldState()
@@ -56,10 +59,13 @@ fun Router(vm: RouterViewModel = hiltViewModel()) {
                     }
                 }
             } ?: run {
-                delay(1500)
-                navController.navigate(Route.Auth.destination) {
-                    popUpTo(0) {
-                        inclusive = true
+                if (state.status is NetworkStatus.Available) {
+                    withTimeout(1500) {
+                        navController.navigate(Route.Auth.destination) {
+                            popUpTo(0) {
+                                inclusive = true
+                            }
+                        }
                     }
                 }
             }
@@ -69,11 +75,13 @@ fun Router(vm: RouterViewModel = hiltViewModel()) {
             Box(
                 Modifier
                     .padding(paddingValues)
-                    .fillMaxSize()
+                    .fillMaxSize(),
+                contentAlignment = Alignment.TopCenter
             ) {
                 NavHost(
                     navController,
-                    startDestination = Route.Splash.destination
+                    startDestination = Route.Splash.destination,
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     composable(Route.Splash.destination) {
                         SplashScreen()
@@ -101,6 +109,11 @@ fun Router(vm: RouterViewModel = hiltViewModel()) {
                         ) {
                             navController.navigateUp()
                         }
+                    }
+                }
+                state.status?.let { status ->
+                    NetworkStatusNotification(status) {
+                        vm.onNetworkStatus(null)
                     }
                 }
             }

@@ -14,9 +14,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class UserService @Inject constructor(
     firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
