@@ -80,13 +80,14 @@ fun BuildSettings(
     val context = LocalContext.current
 
     val imagePicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
-        onResult = { uri ->
-            uri?.let {
-                context.contentResolver.openInputStream(uri)?.readBytes()?.let(onUploadImage)
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                onUploadImage(inputStream.readBytes())
             }
         }
-    )
+    }
 
     val (name, setName) = rememberSaveable {
         mutableStateOf("")
