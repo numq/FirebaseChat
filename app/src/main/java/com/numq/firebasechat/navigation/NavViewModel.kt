@@ -1,6 +1,5 @@
 package com.numq.firebasechat.navigation
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.numq.firebasechat.auth.AuthenticationState

@@ -112,9 +112,7 @@ fun Router(vm: NavViewModel = hiltViewModel()) {
                     }
                 }
                 state.status?.let { status ->
-                    NetworkStatusNotification(status) {
-                        vm.onNetworkStatus(null)
-                    }
+                    NetworkStatusNotification(status)
                 }
             }
         }

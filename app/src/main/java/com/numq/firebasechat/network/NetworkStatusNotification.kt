@@ -1,6 +1,5 @@
 package com.numq.firebasechat.network
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -16,34 +15,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @Composable
-fun NetworkStatusNotification(status: NetworkStatus, onShown: () -> Unit = {}) {
+fun NetworkStatusNotification(status: NetworkStatus) {
 
-    val (isShown, setIsShown) = remember {
-        mutableStateOf(true)
+    val (previousStatus, setPreviousStatus) = remember {
+        mutableStateOf<NetworkStatus?>(null)
     }
 
-    LaunchedEffect(status) {
-        if (status is NetworkStatus.Available) {
-            launch {
-                setIsShown(false)
-                delay(3000)
-            }.invokeOnCompletion {
-                setIsShown(true)
-                onShown()
-            }
-        }
-    }
+    val connectionRestored =
+        previousStatus is NetworkStatus.Unavailable && status is NetworkStatus.Available
 
     LaunchedEffect(status) {
-        Log.e(javaClass.simpleName, status.toString())
+        if (connectionRestored) delay(3000)
+        setPreviousStatus(status)
     }
 
     Box(Modifier.fillMaxWidth()) {
         AnimatedVisibility(
-            status is NetworkStatus.Available && !isShown,
+            connectionRestored,
             enter = slideInVertically(),
             exit = slideOutVertically()
         ) {
