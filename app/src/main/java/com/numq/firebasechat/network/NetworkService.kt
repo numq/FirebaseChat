@@ -9,6 +9,7 @@ import android.os.Build
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
@@ -30,27 +31,28 @@ class NetworkService @Inject constructor(
 
     private val request = NetworkRequest.Builder()
         .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
-        .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
         .addTransportType(NetworkCapabilities.TRANSPORT_WIFI)
         .build()
 
     override val state = callbackFlow {
+        val sendStatus: ProducerScope<NetworkStatus>.(NetworkStatus) -> Unit = {
+            coroutineScope.launch {
+                send(it)
+            }
+        }
         val networkCallback = object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
                 super.onAvailable(network)
-                coroutineScope.launch {
-                    send(NetworkStatus.Available)
-                }
+                sendStatus(NetworkStatus.Available)
             }
 
             override fun onLost(network: Network) {
                 super.onLost(network)
-                coroutineScope.launch {
-                    send(NetworkStatus.Unavailable)
-                }
+                sendStatus(NetworkStatus.Unavailable)
             }
         }
         connectivityManager?.registerNetworkCallback(request, networkCallback)
+        sendStatus(if (isAvailable) NetworkStatus.Available else NetworkStatus.Unavailable)
         awaitClose {
             connectivityManager?.unregisterNetworkCallback(networkCallback)
         }
@@ -61,7 +63,6 @@ class NetworkService @Inject constructor(
             connectivityManager.getNetworkCapabilities(network)?.run {
                 when {
                     hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-                    hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
                     hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
                     else -> false
                 }
@@ -70,7 +71,6 @@ class NetworkService @Inject constructor(
     } else {
         connectivityManager?.activeNetworkInfo?.run {
             when (type) {
-                ConnectivityManager.TYPE_ETHERNET -> true
                 ConnectivityManager.TYPE_MOBILE -> true
                 ConnectivityManager.TYPE_WIFI -> true
                 else -> false

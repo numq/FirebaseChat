@@ -1,6 +1,5 @@
 package com.numq.firebasechat.navigation
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.numq.firebasechat.auth.AuthenticationState
@@ -40,7 +39,7 @@ class NavViewModel @Inject constructor(
             viewModelScope.launch {
                 it.collect { status ->
                     _state.update {
-                        RouterState(status = status)
+                        it.copy(status = status)
                     }
                 }
             }
