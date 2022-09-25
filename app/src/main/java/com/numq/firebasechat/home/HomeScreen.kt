@@ -23,7 +23,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.numq.firebasechat.chat.ActiveChatScreen
 import com.numq.firebasechat.chat.Chat
 import com.numq.firebasechat.chat.ChatListItem
 import com.numq.firebasechat.error.ShowError
@@ -38,8 +37,9 @@ import com.numq.firebasechat.user.User
 fun HomeScreen(
     scaffoldState: ScaffoldState,
     userId: String,
-    navigateToSettings: () -> Unit,
-    vm: HomeViewModel = hiltViewModel()
+    vm: HomeViewModel = hiltViewModel(),
+    navigateToChat: (String) -> Unit,
+    navigateToSettings: () -> Unit
 ) {
 
     val state by vm.state.collectAsState()
@@ -68,11 +68,12 @@ fun HomeScreen(
             currentUser = user,
             chatState = chatState,
             chats = state.chats,
-            activeChat = state.activeChat,
             createChat = {
                 vm.createChat(user.id, it.id)
             },
-            updateActiveChat = vm::updateActiveChat,
+            openChat = {
+                navigateToChat(it)
+            },
             uploadImage = {
                 vm.uploadImage(user.id, it)
             },
@@ -92,17 +93,12 @@ fun BuildHome(
     currentUser: User,
     chatState: LazyListState,
     chats: List<Chat>,
-    activeChat: Chat?,
     createChat: (User) -> Unit,
-    updateActiveChat: (Chat) -> Unit,
+    openChat: (String) -> Unit,
     uploadImage: (ByteArray) -> Unit,
     openSettings: (String) -> Unit,
     signOut: () -> Unit
 ) {
-
-    val (chatVisible, setChatVisible) = remember {
-        mutableStateOf(false)
-    }
 
     val (signOutVisible, setSignOutVisible) = remember {
         mutableStateOf(false)
@@ -125,6 +121,9 @@ fun BuildHome(
             is DrawerArticle.SignOut -> setSignOutVisible(true)
         }
     }) { openDrawer, closeDrawer ->
+        LaunchedEffect(Unit) {
+            closeDrawer()
+        }
         BoxWithConstraints(
             searchModeModifier
                 .fillMaxSize()
@@ -161,46 +160,32 @@ fun BuildHome(
                             chat,
                             maxWidth
                         ) {
-                            updateActiveChat(it)
-                            setChatVisible(true)
+                            openChat(it.id)
                         }
                     }
                 }
-                activeChat?.let {
-                    closeDrawer()
-                }
-            }
-            activeChat?.let { chat ->
-                ActiveChatScreen(
-                    chatVisible,
-                    setChatVisible,
-                    currentUser,
-                    chat,
-                    50.dp,
-                    maxWidth
-                )
-            }
-            if (signOutVisible) {
-                setIsSearching(false)
-                SignOutDialog(confirm = {
-                    signOut()
-                }, dismiss = {
-                    setSignOutVisible(false)
-                })
             }
         }
-        if (isSearching) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                SearchScreen(scaffoldState, onItemClick = {
-                    createChat(it)
-                }) {
-                    setIsSearching(false)
-                }
+        if (signOutVisible) {
+            setIsSearching(false)
+            SignOutDialog(confirm = {
+                signOut()
+            }, dismiss = {
+                setSignOutVisible(false)
+            })
+        }
+    }
+    if (isSearching) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            SearchScreen(scaffoldState, onItemClick = {
+                createChat(it)
+            }) {
+                setIsSearching(false)
             }
         }
     }

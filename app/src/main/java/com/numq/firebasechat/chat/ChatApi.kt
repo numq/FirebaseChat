@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 interface ChatApi {
     fun getChats(userId: String, lastChatId: String?, limit: Long): Flow<Chat>
-    fun getChatById(id: String): Task<Chat?>
+    fun getChatById(id: String): Flow<Chat>
     fun createChat(userId: String, anotherId: String): Task<Chat?>
     fun updateChat(chat: Chat): Task<Chat?>
     fun updateLastMessage(chatId: String, message: Message): Task<Chat?>

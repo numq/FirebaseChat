@@ -9,7 +9,8 @@ interface ChatRepository {
         lastChatId: String?,
         limit: Long
     ): Either<Exception, Flow<Chat>>
-    suspend fun getChatById(id: String): Either<Exception, Chat>
+
+    suspend fun getChatById(id: String): Either<Exception, Flow<Chat>>
     suspend fun createChat(userId: String, anotherId: String): Either<Exception, Chat>
     suspend fun updateChat(chat: Chat): Either<Exception, Chat>
     suspend fun deleteChat(id: String): Either<Exception, String>

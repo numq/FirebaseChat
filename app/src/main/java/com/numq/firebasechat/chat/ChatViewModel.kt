@@ -6,6 +6,7 @@ import com.numq.firebasechat.message.GetLatestMessages
 import com.numq.firebasechat.message.GetMessages
 import com.numq.firebasechat.message.ReadMessage
 import com.numq.firebasechat.message.SendMessage
+import com.numq.firebasechat.user.GetUserById
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,7 +15,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ActiveChatViewModel @Inject constructor(
+class ChatViewModel @Inject constructor(
+    private val getUserById: GetUserById,
+    private val getChatById: GetChatById,
     private val getLatestMessages: GetLatestMessages,
     private val getMessages: GetMessages,
     private val sendMessage: SendMessage,
@@ -23,6 +26,28 @@ class ActiveChatViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(ChatState())
     val state = _state.asStateFlow()
+
+    fun observeUser(userId: String) =
+        getUserById.invoke(userId, onError) { flow ->
+            viewModelScope.launch {
+                flow.collect { user ->
+                    _state.update {
+                        it.copy(user = user)
+                    }
+                }
+            }
+        }
+
+    fun observeChat(chatId: String) =
+        getChatById(chatId, onError) { flow ->
+            viewModelScope.launch {
+                flow.collect { chat ->
+                    _state.update {
+                        it.copy(chat = chat)
+                    }
+                }
+            }
+        }
 
     fun observeLastMessages(chatId: String, limit: Long) =
         getLatestMessages.invoke(Pair(chatId, limit), onError) { messages ->

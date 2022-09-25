@@ -52,8 +52,20 @@ class ChatService @Inject constructor(
         }
     }
 
-    override fun getChatById(id: String) = collection.document(id).get().onSuccessTask {
-        Tasks.forResult(it.chat)
+    override fun getChatById(id: String) = callbackFlow {
+        val subscription = collection.document(id).addSnapshotListener { value, error ->
+            error?.let { close(error) }
+            coroutineScope.launch {
+                value?.let {
+                    it.chat?.let { chat ->
+                        send(chat)
+                    }
+                }
+            }
+        }
+        awaitClose {
+            subscription.remove()
+        }
     }
 
     override fun createChat(userId: String, anotherId: String): Task<Chat?> {

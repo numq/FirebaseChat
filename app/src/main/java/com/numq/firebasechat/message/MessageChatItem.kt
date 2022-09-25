@@ -12,14 +12,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.numq.firebasechat.user.User
 import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
-fun MessageChatItem(user: User, message: Message, maxWidth: Dp) {
+fun MessageChatItem(user: User, message: Message) {
     val isOutgoing = message.senderId == user.id
     val alignment = if (isOutgoing) Alignment.End else Alignment.Start
     val tint = if (isOutgoing) MessageColors.senderColor else MessageColors.receiverColor
@@ -32,12 +31,13 @@ fun MessageChatItem(user: User, message: Message, maxWidth: Dp) {
     ) {
         with(message) {
             Card(
-                Modifier.widthIn(max = maxWidth * .75f),
                 backgroundColor = tint,
                 contentColor = Color.Black
             ) {
                 Box(
-                    Modifier.padding(8.dp),
+                    Modifier
+                        .fillMaxWidth(.7f)
+                        .padding(8.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(text)
