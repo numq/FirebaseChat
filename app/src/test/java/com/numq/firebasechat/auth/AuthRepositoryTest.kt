@@ -2,8 +2,9 @@ package com.numq.firebasechat.auth
 
 import arrow.core.right
 import com.google.android.gms.tasks.Tasks
+import com.numq.firebasechat.network.NetworkApi
 import com.numq.firebasechat.user.User
-import com.numq.firebasechat.user.UserService
+import com.numq.firebasechat.user.UserApi
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -18,15 +19,19 @@ class AuthRepositoryTest {
     private lateinit var repository: AuthRepository
 
     @MockK
-    private lateinit var authService: AuthService
+    private lateinit var networkService: NetworkApi
 
     @MockK
-    private lateinit var userService: UserService
+    private lateinit var authService: AuthApi
+
+    @MockK
+    private lateinit var userService: UserApi
 
     @Before
     fun before() {
         MockKAnnotations.init(this)
-        repository = AuthData(authService, userService)
+        every { networkService.isAvailable } returns true
+        repository = AuthData(networkService, authService, userService)
     }
 
     @Test

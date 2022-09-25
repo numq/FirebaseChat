@@ -2,6 +2,7 @@ package com.numq.firebasechat.user
 
 import arrow.core.right
 import com.google.android.gms.tasks.Tasks
+import com.numq.firebasechat.network.NetworkApi
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -17,12 +18,16 @@ class UserRepositoryTest {
     private lateinit var repository: UserRepository
 
     @MockK
+    private lateinit var networkService: NetworkApi
+
+    @MockK
     private lateinit var userService: UserApi
 
     @Before
     fun before() {
         MockKAnnotations.init(this)
-        repository = UserData(userService)
+        every { networkService.isAvailable } returns true
+        repository = UserData(networkService, userService)
     }
 
     @Test

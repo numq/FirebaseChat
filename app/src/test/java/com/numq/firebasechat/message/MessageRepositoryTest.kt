@@ -4,10 +4,12 @@ import arrow.core.right
 import com.google.android.gms.tasks.Tasks
 import com.numq.firebasechat.chat.Chat
 import com.numq.firebasechat.chat.ChatApi
+import com.numq.firebasechat.network.NetworkApi
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Test
@@ -18,6 +20,9 @@ class MessageRepositoryTest {
     private lateinit var repository: MessageRepository
 
     @MockK
+    private lateinit var networkService: NetworkApi
+
+    @MockK
     private lateinit var chatService: ChatApi
 
     @MockK
@@ -26,7 +31,8 @@ class MessageRepositoryTest {
     @Before
     fun before() {
         MockKAnnotations.init(this)
-        repository = MessageData(chatService, messageService)
+        every { networkService.isAvailable } returns true
+        repository = MessageData(networkService, chatService, messageService)
     }
 
     @Test
@@ -56,7 +62,7 @@ class MessageRepositoryTest {
         val (chatId, userId, text) = arrayOfNulls<String>(3).map { "test" }
         val chat = Chat(chatId)
         val message = Message(id = "test", chatId = chatId, senderId = userId, text = text)
-        every { chatService.getChatById(any()) } returns Tasks.forResult(chat)
+        every { chatService.getChatById(any()) } returns flowOf(chat)
         every { chatService.updateChat(any()) } returns Tasks.forResult(chat)
         every { messageService.createMessage(any(), any(), any()) } returns Tasks.forResult(message)
 
@@ -69,7 +75,7 @@ class MessageRepositoryTest {
         val id = "test"
         val chat = Chat(id)
         val message = Message(id = id)
-        every { chatService.getChatById(any()) } returns Tasks.forResult(chat)
+        every { chatService.getChatById(any()) } returns flowOf(chat)
         every { chatService.updateChat(any()) } returns Tasks.forResult(chat)
         every { messageService.readMessage(any()) } returns Tasks.forResult(message)
 
@@ -80,7 +86,7 @@ class MessageRepositoryTest {
     fun `should delete message and return id`() = runBlocking {
         val id = "test"
         val chat = Chat(id)
-        every { chatService.getChatById(any()) } returns Tasks.forResult(chat)
+        every { chatService.getChatById(any()) } returns flowOf(chat)
         every { chatService.updateChat(any()) } returns Tasks.forResult(chat)
         every {
             messageService.getMessages(
