@@ -160,7 +160,7 @@ fun BuildSettings(
                                 Icon(Icons.Rounded.Clear, "clear name")
                             }
                         }, singleLine = true, placeholder = {
-                            Text(text = "Change name")
+                            Text(text = user.name)
                         }, isError = InputValidator.validateName(name)
                     )
                     AnimatedVisibility(InputValidator.validateName(name)) {
@@ -185,7 +185,7 @@ fun BuildSettings(
                                 Icon(Icons.Rounded.Clear, "clear email")
                             }
                         }, singleLine = true, placeholder = {
-                            Text(text = "Change email")
+                            Text(text = user.email)
                         }, isError = InputValidator.validateEmail(email)
                     )
                     AnimatedVisibility(InputValidator.validateEmail(email)) {
@@ -222,7 +222,7 @@ fun BuildSettings(
                                 Icon(Icons.Rounded.Clear, "clear password")
                             }
                         }, singleLine = true, placeholder = {
-                            Text(text = "Change password")
+                            Text(text = "Type new password here")
                         }, isError = InputValidator.validatePassword(name),
                         keyboardOptions = KeyboardOptions(
                             autoCorrect = false,

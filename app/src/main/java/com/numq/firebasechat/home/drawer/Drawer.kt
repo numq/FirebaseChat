@@ -31,7 +31,7 @@ fun Drawer(
     onDrawerArticleClick: (DrawerArticle) -> Unit,
     onDrawerOpened: () -> Unit = {},
     onDrawerClosed: () -> Unit = {},
-    content: @Composable (() -> Unit, () -> Unit) -> Unit
+    content: @Composable (DrawerState, () -> Unit, () -> Unit) -> Unit
 ) {
 
     val context = LocalContext.current
@@ -106,7 +106,7 @@ fun Drawer(
                     }
                 }
             }) {
-            content(openDrawer, closeDrawer)
+            content(drawerState, openDrawer, closeDrawer)
         }
     }
 }

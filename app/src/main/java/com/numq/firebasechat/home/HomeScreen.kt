@@ -1,6 +1,7 @@
 package com.numq.firebasechat.home
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -69,7 +70,9 @@ fun HomeScreen(
             chatState = chatState,
             chats = state.chats,
             createChat = {
-                vm.createChat(user.id, it.id)
+                vm.createChat(user.id, it.id) { chat ->
+                    navigateToChat(chat.id)
+                }
             },
             openChat = {
                 navigateToChat(it)
@@ -120,8 +123,8 @@ fun BuildHome(
             is DrawerArticle.Settings -> openSettings(currentUser.id)
             is DrawerArticle.SignOut -> setSignOutVisible(true)
         }
-    }) { openDrawer, closeDrawer ->
-        LaunchedEffect(Unit) {
+    }) { drawerState, openDrawer, closeDrawer ->
+        BackHandler(drawerState.isOpen) {
             closeDrawer()
         }
         BoxWithConstraints(

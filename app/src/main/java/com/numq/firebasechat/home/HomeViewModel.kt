@@ -67,15 +67,9 @@ class HomeViewModel @Inject constructor(
             }
         }
 
-    fun updateActiveChat(chat: Chat) = _state.update {
-        it.copy(activeChat = chat)
-    }
-
-    fun createChat(userId: String, anotherId: String) =
+    fun createChat(userId: String, anotherId: String, onChatCreated: (Chat) -> Unit) =
         createChat.invoke(Pair(userId, anotherId), onError) { chat ->
-            _state.update {
-                it.copy(activeChat = chat)
-            }
+            onChatCreated(chat)
         }
 
     fun uploadImage(id: String, bytes: ByteArray) =

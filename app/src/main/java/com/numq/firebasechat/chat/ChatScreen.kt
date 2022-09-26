@@ -1,6 +1,7 @@
 package com.numq.firebasechat.chat
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -33,6 +34,10 @@ fun ChatScreen(
     vm: ChatViewModel = hiltViewModel(),
     navigateUp: () -> Unit
 ) {
+
+    BackHandler {
+        navigateUp()
+    }
 
     val state by vm.state.collectAsState()
 

@@ -18,6 +18,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.numq.firebasechat.auth.AuthScreen
+import com.numq.firebasechat.chat.ChatScreen
 import com.numq.firebasechat.error.ShowError
 import com.numq.firebasechat.home.HomeScreen
 import com.numq.firebasechat.network.NetworkStatus
@@ -94,20 +95,42 @@ fun Router(vm: NavViewModel = hiltViewModel()) {
                             HomeScreen(
                                 scaffoldState,
                                 userId = userId,
+                                navigateToChat = { chatId ->
+                                    navController.navigate(Route.Chat.destination + "/$userId/$chatId") {
+                                        popUpTo(0)
+                                    }
+                                },
                                 navigateToSettings = {
                                     navController.navigate(Route.Settings.destination + "/$userId") {
-                                        launchSingleTop = true
+                                        popUpTo(0)
                                     }
                                 }
                             )
                         }
                     }
-                    composable(Route.Settings.destination + "/{userId}") {
-                        SettingsScreen(
-                            scaffoldState,
-                            userId = it.arguments?.getString("userId")
-                        ) {
-                            navController.navigateUp()
+                    composable(Route.Chat.destination + "/{userId}/{chatId}") {
+                        it.arguments?.getString("userId")?.let { userId ->
+                            it.arguments?.getString("chatId")?.let { chatId ->
+                                ChatScreen(scaffoldState, userId = userId, chatId = chatId) {
+                                    navController.navigate(Route.Home.destination + "/$userId") {
+                                        popUpTo(0)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    composable(
+                        Route.Settings.destination + "/{userId}"
+                    ) {
+                        it.arguments?.getString("userId")?.let { userId ->
+                            SettingsScreen(
+                                scaffoldState,
+                                userId = it.arguments?.getString("userId")
+                            ) {
+                                navController.navigate(Route.Home.destination + "/$userId") {
+                                    popUpTo(0)
+                                }
+                            }
                         }
                     }
                 }

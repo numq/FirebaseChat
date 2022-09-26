@@ -5,7 +5,6 @@ import com.numq.firebasechat.user.User
 
 data class HomeState(
     val currentUser: User? = null,
-    val activeChat: Chat? = null,
     val chats: List<Chat> = emptyList(),
     val exception: Exception? = null
 )

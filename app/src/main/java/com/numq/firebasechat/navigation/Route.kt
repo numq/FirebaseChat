@@ -8,12 +8,14 @@ sealed class Route private constructor(
     private companion object {
         const val SPLASH = "splash"
         const val AUTH = "auth"
+        const val CHAT = "chat"
         const val HOME = "home"
         const val SETTINGS = "settings"
     }
 
     object Splash : Route(SPLASH)
     object Auth : Route(AUTH)
+    object Chat : Route(CHAT)
     object Home : Route(HOME)
     object Settings : Route(SETTINGS)
 }
