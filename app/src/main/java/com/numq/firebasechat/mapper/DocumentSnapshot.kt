@@ -67,7 +67,7 @@ val DocumentSnapshot.user
         val imageUri = getString("imageUri")
         val isOnline = getBoolean("online")
         val lastSeenAt = getLong("lastSeenAt")
-        return if (id != null && email != null && isOnline != null && lastSeenAt != null) {
+        return if (id != null && name != null && email != null && isOnline != null && lastSeenAt != null) {
             User(
                 id = id,
                 email = email,

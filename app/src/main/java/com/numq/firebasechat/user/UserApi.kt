@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 interface UserApi {
     fun getUsersByQuery(query: String, limit: Long): Flow<User>
     fun getUserById(id: String): Flow<User>?
-    fun createUser(id: String, name: String?, email: String): Task<User>
+    fun createUser(id: String, name: String, email: String): Task<User>
     fun updateUserActivity(id: String, state: Boolean): Task<Void>
     fun uploadImage(id: String, bytes: ByteArray): Task<User?>
     fun updateName(id: String, name: String): Task<User?>

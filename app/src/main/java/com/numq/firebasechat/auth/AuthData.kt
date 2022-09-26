@@ -19,7 +19,7 @@ class AuthData @Inject constructor(
         authService.signInByEmail(email, password).wrap(networkService).leftIfNull { AuthException }
 
     override suspend fun signUpByEmail(name: String, email: String, password: String) =
-        authService.signUpByEmail(email, password) { id ->
+        authService.signUpByEmail(name, email, password) { id ->
             runCatching { userService.createUser(id, name, email).isSuccessful }.isSuccess
         }.wrap(networkService).leftIfNull { AuthException }
 

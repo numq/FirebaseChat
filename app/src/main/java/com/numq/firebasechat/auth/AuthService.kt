@@ -40,6 +40,7 @@ class AuthService @Inject constructor(
         }
 
     override fun signUpByEmail(
+        name: String,
         email: String,
         password: String,
         onSignUp: (String) -> Boolean

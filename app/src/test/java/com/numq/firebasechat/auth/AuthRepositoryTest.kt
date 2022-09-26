@@ -50,7 +50,7 @@ class AuthRepositoryTest {
 
     @Test
     fun `should sign up by email and return user`() = runBlocking {
-        every { authService.signUpByEmail(any(), any(), any()) } returns true
+        every { authService.signUpByEmail(any(), any(), any(), any()) } returns true
         every { userService.createUser(any(), any(), any()) } returns Tasks.forResult(User())
         assertEquals(true.right(), repository.signUpByEmail("test", "test", "test"))
     }

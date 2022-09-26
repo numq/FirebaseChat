@@ -64,7 +64,7 @@ class UserService @Inject constructor(
         }
     }
 
-    override fun createUser(id: String, name: String?, email: String) =
+    override fun createUser(id: String, name: String, email: String) =
         collection.document(id).set(
             User(
                 id = id,
