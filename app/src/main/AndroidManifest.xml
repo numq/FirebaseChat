@@ -13,6 +13,7 @@
         <activity
             android:name="com.numq.firebasechat.navigation.NavActivity"
             android:exported="true"
+            android:hardwareAccelerated="true"
             android:theme="@style/Theme.FirebaseChat"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
