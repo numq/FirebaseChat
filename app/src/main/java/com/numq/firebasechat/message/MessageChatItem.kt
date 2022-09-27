@@ -20,13 +20,12 @@ import java.util.*
 @Composable
 fun MessageChatItem(user: User, message: Message) {
     val isOutgoing = message.senderId == user.id
-    val alignment = if (isOutgoing) Alignment.End else Alignment.Start
     val tint = if (isOutgoing) MessageColors.senderColor else MessageColors.receiverColor
     Column(
         Modifier
             .fillMaxWidth()
             .padding(4.dp),
-        horizontalAlignment = alignment,
+        horizontalAlignment = if (isOutgoing) Alignment.End else Alignment.Start,
         verticalArrangement = Arrangement.Center
     ) {
         with(message) {
@@ -38,14 +37,14 @@ fun MessageChatItem(user: User, message: Message) {
                     Modifier
                         .fillMaxWidth(.7f)
                         .padding(8.dp),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = if (isOutgoing) Alignment.CenterEnd else Alignment.CenterStart
                 ) {
                     Text(text)
                 }
             }
             Row(
                 Modifier.padding(4.dp),
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = if (isOutgoing) Arrangement.End else Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (delivered) {
