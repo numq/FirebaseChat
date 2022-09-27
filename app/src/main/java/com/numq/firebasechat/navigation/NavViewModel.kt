@@ -19,7 +19,7 @@ class NavViewModel @Inject constructor(
     getNetworkStatus: GetNetworkStatus
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(RouterState())
+    private val _state = MutableStateFlow(NavState())
     val state = _state.asStateFlow()
 
     private val onError: (Exception) -> Unit = { exception ->

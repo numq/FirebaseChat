@@ -2,7 +2,7 @@ package com.numq.firebasechat.navigation
 
 import com.numq.firebasechat.network.NetworkStatus
 
-data class RouterState(
+data class NavState(
     val authenticating: Boolean = true,
     val userId: String? = null,
     val status: NetworkStatus? = null,
