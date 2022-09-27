@@ -1,7 +1,7 @@
 ## About
 Android Jetpack Compose messenger client implementation using Firebase services
 
-![Full architecture diagram](../main/media/firebase_chat_full_scheme.png)
+![Full architecture diagram](./media/firebase_chat_full_scheme.png)
 
 ## Architectural concepts and goals:
 - Clean Architecture principles
