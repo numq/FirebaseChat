@@ -12,7 +12,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -31,6 +34,7 @@ import kotlinx.coroutines.withTimeout
 @Composable
 fun Router(vm: NavViewModel = hiltViewModel()) {
 
+    val lifecycleOwner = LocalLifecycleOwner.current
     val navController = rememberNavController()
     val scaffoldState = rememberScaffoldState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -50,6 +54,12 @@ fun Router(vm: NavViewModel = hiltViewModel()) {
 
         state.exception?.let {
             ShowError(scaffoldState, it, vm.cleanUpError)
+        }
+
+        LaunchedEffect(Unit) {
+            lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                vm.getNetworkStatus()
+            }
         }
 
         LaunchedEffect(state.userId) {

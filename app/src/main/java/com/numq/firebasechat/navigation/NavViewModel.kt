@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.numq.firebasechat.auth.AuthenticationState
 import com.numq.firebasechat.auth.GetAuthenticationState
 import com.numq.firebasechat.network.GetNetworkStatus
-import com.numq.firebasechat.network.NetworkStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,7 +15,7 @@ import javax.inject.Inject
 @HiltViewModel
 class NavViewModel @Inject constructor(
     getAuthenticationState: GetAuthenticationState,
-    getNetworkStatus: GetNetworkStatus
+    private val getNetworkStatus: GetNetworkStatus
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(NavState())
@@ -35,15 +34,6 @@ class NavViewModel @Inject constructor(
     }
 
     init {
-        getNetworkStatus.invoke(Unit, onError) {
-            viewModelScope.launch {
-                it.collect { status ->
-                    _state.update {
-                        it.copy(status = status)
-                    }
-                }
-            }
-        }
         getAuthenticationState.invoke(Unit, onError) {
             viewModelScope.launch {
                 it.collect { authState ->
@@ -70,9 +60,13 @@ class NavViewModel @Inject constructor(
         }
     }
 
-    val onNetworkStatus: (NetworkStatus?) -> Unit = { status ->
-        _state.update {
-            it.copy(status = status)
+    fun getNetworkStatus() = getNetworkStatus.invoke(Unit, onError) {
+        viewModelScope.launch {
+            it.collect { status ->
+                _state.update {
+                    it.copy(status = status)
+                }
+            }
         }
     }
 
