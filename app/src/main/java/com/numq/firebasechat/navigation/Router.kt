@@ -12,36 +12,33 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.numq.firebasechat.auth.AuthScreen
+import com.numq.firebasechat.auth.AuthenticationState
 import com.numq.firebasechat.chat.ChatScreen
 import com.numq.firebasechat.error.ShowError
 import com.numq.firebasechat.home.HomeScreen
-import com.numq.firebasechat.network.NetworkStatus
 import com.numq.firebasechat.network.NetworkStatusNotification
 import com.numq.firebasechat.permission.PermissionsRequired
 import com.numq.firebasechat.settings.SettingsScreen
 import com.numq.firebasechat.splash.SplashScreen
-import kotlinx.coroutines.withTimeout
 
 @Composable
 fun Router(vm: NavViewModel = hiltViewModel()) {
 
-    val lifecycleOwner = LocalLifecycleOwner.current
     val navController = rememberNavController()
     val scaffoldState = rememberScaffoldState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
-    val permissions = listOf<String>(
-//        android.Manifest.permission.READ_EXTERNAL_STORAGE,
-//        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+    val permissions = listOf(
+        android.Manifest.permission.INTERNET,
+        android.Manifest.permission.ACCESS_NETWORK_STATE,
+        android.Manifest.permission.ACCESS_WIFI_STATE,
+        android.Manifest.permission.READ_EXTERNAL_STORAGE
     )
 
     LaunchedEffect(navBackStackEntry) {
@@ -56,29 +53,23 @@ fun Router(vm: NavViewModel = hiltViewModel()) {
             ShowError(scaffoldState, it, vm.cleanUpError)
         }
 
-        LaunchedEffect(Unit) {
-            lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                vm.getNetworkStatus()
-            }
-        }
-
-        LaunchedEffect(state.userId) {
-            state.userId?.let {
-                navController.navigate(Route.Home.destination + "/${state.userId}") {
-                    popUpTo(0) {
-                        inclusive = true
-                    }
-                }
-            } ?: run {
-                if (state.status is NetworkStatus.Available) {
-                    withTimeout(1500) {
-                        navController.navigate(Route.Auth.destination) {
-                            popUpTo(0) {
-                                inclusive = true
-                            }
+        LaunchedEffect(state.authenticationState) {
+            when (val authState = state.authenticationState) {
+                is AuthenticationState.Authenticated -> {
+                    navController.navigate(Route.Home.destination + "/${authState.userId}") {
+                        popUpTo(0) {
+                            inclusive = true
                         }
                     }
                 }
+                is AuthenticationState.Unauthenticated -> {
+                    navController.navigate(Route.Auth.destination) {
+                        popUpTo(0) {
+                            inclusive = true
+                        }
+                    }
+                }
+                else -> Unit
             }
         }
 

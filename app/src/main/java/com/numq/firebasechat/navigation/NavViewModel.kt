@@ -2,9 +2,9 @@ package com.numq.firebasechat.navigation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.numq.firebasechat.auth.AuthenticationState
 import com.numq.firebasechat.auth.GetAuthenticationState
 import com.numq.firebasechat.network.GetNetworkStatus
+import com.numq.firebasechat.network.NetworkStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,8 +14,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NavViewModel @Inject constructor(
-    getAuthenticationState: GetAuthenticationState,
-    private val getNetworkStatus: GetNetworkStatus
+    getNetworkStatus: GetNetworkStatus,
+    getAuthenticationState: GetAuthenticationState
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(NavState())
@@ -34,37 +34,24 @@ class NavViewModel @Inject constructor(
     }
 
     init {
-        getAuthenticationState.invoke(Unit, onError) {
+        getNetworkStatus.invoke(Unit, onError) {
             viewModelScope.launch {
-                it.collect { authState ->
-                    when (authState) {
-                        is AuthenticationState.Authenticating ->
-                            _state.update {
-                                it.copy(authenticating = true)
+                it.collect { status ->
+                    if (status is NetworkStatus.Available) {
+                        getAuthenticationState.invoke(Unit, onError) {
+                            viewModelScope.launch {
+                                it.collect { authState ->
+                                    _state.update {
+                                        it.copy(status = status, authenticationState = authState)
+                                    }
+                                }
                             }
-                        is AuthenticationState.Authenticated ->
-                            _state.update {
-                                it.copy(userId = authState.userId, authenticating = false)
-                            }
-                        is AuthenticationState.Unauthenticated ->
-                            _state.update {
-                                it.copy(authenticating = false)
-                            }
-                        is AuthenticationState.Failure ->
-                            _state.update {
-                                it.copy(exception = authState.exception, authenticating = false)
-                            }
+                        }
+                    } else {
+                        _state.update {
+                            it.copy(status = status)
+                        }
                     }
-                }
-            }
-        }
-    }
-
-    fun getNetworkStatus() = getNetworkStatus.invoke(Unit, onError) {
-        viewModelScope.launch {
-            it.collect { status ->
-                _state.update {
-                    it.copy(status = status)
                 }
             }
         }
