@@ -7,5 +7,5 @@ import javax.inject.Inject
 class GetNetworkStatus @Inject constructor(
     private val repository: NetworkRepository
 ) : UseCase<Unit, Flow<NetworkStatus>>() {
-    override suspend fun execute(arg: Unit) = repository.state
+    override suspend fun execute(arg: Unit) = repository.status
 }
