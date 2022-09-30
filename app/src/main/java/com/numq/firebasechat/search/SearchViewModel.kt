@@ -1,6 +1,5 @@
 package com.numq.firebasechat.search
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.numq.firebasechat.user.GetUsersByQuery
@@ -31,7 +30,6 @@ class SearchViewModel @Inject constructor(
         debounceJob = viewModelScope.launch {
             delay(timeout)
             action()
-            Log.e("debounce", "fired")
         }
     }
 

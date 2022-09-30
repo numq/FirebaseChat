@@ -1,6 +1,5 @@
 package com.numq.firebasechat.chat
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,10 +33,6 @@ fun ChatListItem(
     val isOutgoing = chat.lastMessage?.senderId == user.id
     val tint = if (isOutgoing) MessageColors.senderColor else MessageColors.receiverColor
 
-    LaunchedEffect(Unit) {
-        Log.e("chat", chat.toString())
-    }
-
     Card(
         Modifier
             .width(maxWidth)
@@ -59,7 +53,6 @@ fun ChatListItem(
                 Divider(Modifier.fillMaxWidth(), color = Color.Black)
             }
             chat.lastMessage?.also { message ->
-                Log.e("lastMessage", message.toString())
                 with(message) {
                     Column(
                         Modifier
