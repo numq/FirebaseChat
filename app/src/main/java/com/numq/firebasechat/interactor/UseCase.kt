@@ -17,9 +17,12 @@ abstract class UseCase<in T, out R> {
     operator fun invoke(arg: T, onException: (Exception) -> Unit, onResult: (R) -> Unit = {}) {
         coroutineScope.launch {
             execute(arg).tap {
-                Log.d(javaClass.simpleName, it.toString())
+                Log.d(this@UseCase.javaClass.simpleName, it.toString())
             }.tapLeft {
-                Log.e(javaClass.simpleName, it.localizedMessage ?: it::class.java.simpleName)
+                Log.e(
+                    this@UseCase.javaClass.simpleName,
+                    it.localizedMessage ?: it::class.java.simpleName
+                )
             }.fold(onException, onResult)
         }
     }
