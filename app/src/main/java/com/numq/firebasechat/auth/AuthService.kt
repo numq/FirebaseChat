@@ -19,13 +19,10 @@ class AuthService @Inject constructor(
     override fun getAuthenticationState() = callbackFlow {
         coroutineScope.launch { send(AuthenticationState.Authenticating) }
         val listener = FirebaseAuth.AuthStateListener {
-            try {
-                it.currentUser?.let { user ->
-                    coroutineScope.launch { send(AuthenticationState.Authenticated(user.uid)) }
-                } ?: coroutineScope.launch { send(AuthenticationState.Unauthenticated) }
-            } catch (e: Exception) {
-                coroutineScope.launch { send(AuthenticationState.Failure(e)) }
-                close(e)
+            coroutineScope.launch {
+                it.uid?.let { uid ->
+                    send(AuthenticationState.Authenticated(uid))
+                } ?: send(AuthenticationState.Unauthenticated)
             }
         }
         auth.addAuthStateListener(listener)
