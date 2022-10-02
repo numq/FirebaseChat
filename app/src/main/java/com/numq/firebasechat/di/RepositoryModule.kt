@@ -1,6 +1,5 @@
 package com.numq.firebasechat.di
 
-import com.numq.firebasechat.auth.AuthData
 import com.numq.firebasechat.auth.AuthRepository
 import com.numq.firebasechat.chat.ChatData
 import com.numq.firebasechat.chat.ChatRepository
@@ -25,7 +24,7 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun bindAuthRepository(data: AuthData): AuthRepository
+    abstract fun bindAuthRepository(repository: AuthRepository.Implementation): AuthRepository
 
     @Binds
     @Singleton
