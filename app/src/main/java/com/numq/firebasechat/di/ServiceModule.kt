@@ -2,7 +2,6 @@ package com.numq.firebasechat.di
 
 import com.numq.firebasechat.auth.AuthApi
 import com.numq.firebasechat.chat.ChatApi
-import com.numq.firebasechat.chat.ChatService
 import com.numq.firebasechat.message.MessageApi
 import com.numq.firebasechat.message.MessageService
 import com.numq.firebasechat.network.NetworkApi
@@ -28,7 +27,7 @@ abstract class ServiceModule {
 
     @Binds
     @Singleton
-    abstract fun bindChatApi(service: ChatService): ChatApi
+    abstract fun bindChatApi(api: ChatApi.Implementation): ChatApi
 
     @Binds
     @Singleton
