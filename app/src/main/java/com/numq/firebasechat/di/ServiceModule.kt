@@ -5,7 +5,6 @@ import com.numq.firebasechat.chat.ChatApi
 import com.numq.firebasechat.message.MessageApi
 import com.numq.firebasechat.network.NetworkApi
 import com.numq.firebasechat.user.UserApi
-import com.numq.firebasechat.user.UserService
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -34,6 +33,6 @@ abstract class ServiceModule {
 
     @Binds
     @Singleton
-    abstract fun bindUserApi(service: UserService): UserApi
+    abstract fun bindUserApi(api: UserApi.Implementation): UserApi
 
 }
