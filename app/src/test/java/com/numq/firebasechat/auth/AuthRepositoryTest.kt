@@ -31,7 +31,7 @@ class AuthRepositoryTest {
     fun before() {
         MockKAnnotations.init(this)
         every { networkService.isAvailable } returns true
-        repository = AuthData(networkService, authService, userService)
+        repository = AuthRepository.Implementation(networkService, authService, userService)
     }
 
     @Test

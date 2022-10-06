@@ -32,7 +32,7 @@ class ChatRepositoryTest {
     fun before() {
         MockKAnnotations.init(this)
         every { networkService.isAvailable } returns true
-        repository = ChatData(networkService, chatService)
+        repository = ChatRepository.Implementation(networkService, chatService)
     }
 
     @Test

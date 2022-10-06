@@ -27,7 +27,7 @@ class UserRepositoryTest {
     fun before() {
         MockKAnnotations.init(this)
         every { networkService.isAvailable } returns true
-        repository = UserData(networkService, userService)
+        repository = UserRepository.Implementation(networkService, userService)
     }
 
     @Test
