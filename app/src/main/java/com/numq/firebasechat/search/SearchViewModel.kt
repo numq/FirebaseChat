@@ -2,7 +2,6 @@ package com.numq.firebasechat.search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.numq.firebasechat.user.GetUsersByQuery
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -14,7 +13,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    private val getUsersByQuery: GetUsersByQuery
+    private val findUsersByQuery: FindUsersByQuery
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SearchState())
@@ -33,15 +32,15 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    private val DEFAULT_LIMIT = 10L
-
-    fun searchByQuery(query: String) {
+    fun searchByQuery(currentUserId: String, query: String) {
         debounce {
-            getUsersByQuery.invoke(Pair(query, DEFAULT_LIMIT), onError) { users ->
+            findUsersByQuery.invoke(query, onError) { users ->
                 viewModelScope.launch {
                     users.collect { user ->
-                        _state.update {
-                            SearchState(searchResults = it.searchResults.plus(user).distinct())
+                        if (user.id != currentUserId) {
+                            _state.update {
+                                SearchState(searchResults = it.searchResults.plus(user).distinct())
+                            }
                         }
                     }
                 }

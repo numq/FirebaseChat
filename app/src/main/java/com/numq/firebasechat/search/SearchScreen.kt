@@ -20,6 +20,7 @@ import com.numq.firebasechat.user.User
 @Composable
 fun SearchScreen(
     scaffoldState: ScaffoldState,
+    currentUserId: String,
     vm: SearchViewModel = hiltViewModel(),
     onItemClick: (User) -> Unit,
     onCloseSearch: () -> Unit
@@ -48,7 +49,7 @@ fun SearchScreen(
     }
 
     LaunchedEffect(searchQuery) {
-        vm.searchByQuery(searchQuery)
+        vm.searchByQuery(currentUserId, searchQuery)
     }
 
     Column(

@@ -185,7 +185,7 @@ fun BuildHome(
                 .padding(8.dp),
             contentAlignment = Alignment.Center
         ) {
-            SearchScreen(scaffoldState, onItemClick = {
+            SearchScreen(scaffoldState, currentUser.id, onItemClick = {
                 createChat(it)
             }) {
                 setIsSearching(false)

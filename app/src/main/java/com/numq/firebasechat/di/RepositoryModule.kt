@@ -4,6 +4,7 @@ import com.numq.firebasechat.auth.AuthRepository
 import com.numq.firebasechat.chat.ChatRepository
 import com.numq.firebasechat.message.MessageRepository
 import com.numq.firebasechat.network.NetworkRepository
+import com.numq.firebasechat.search.SearchRepository
 import com.numq.firebasechat.user.UserRepository
 import dagger.Binds
 import dagger.Module
@@ -34,5 +35,9 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindUserRepository(repository: UserRepository.Implementation): UserRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSearchRepository(repository: SearchRepository.Implementation): SearchRepository
 
 }
