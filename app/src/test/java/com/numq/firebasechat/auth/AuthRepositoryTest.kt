@@ -37,9 +37,9 @@ class AuthRepositoryTest {
     @Test
     fun `should return authentication state`() = runBlocking {
         val id = "test"
-        val input = flowOf(AuthenticationState.Authenticated(id))
-        every { authService.getAuthenticationState() } returns input
-        assertEquals(input.right(), repository.getAuthenticationState())
+        val state = flowOf(AuthenticationState.Authenticated(id))
+        every { authService.getAuthenticationState() } returns state
+        assertEquals(state.right(), repository.getAuthenticationState())
     }
 
     @Test

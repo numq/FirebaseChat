@@ -59,9 +59,9 @@ interface AuthApi {
                 if (!onSignUp(user.uid)) {
                     user.delete()
                     it.credential?.let { credential -> user.reauthenticate(credential) }
-                    throw AuthException
+                    throw AuthException.Default
                 }
-            } ?: throw AuthException
+            } ?: throw AuthException.Default
         }) {
             isSuccessful
         }

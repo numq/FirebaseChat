@@ -1,3 +1,5 @@
 package com.numq.firebasechat.auth
 
-object AuthException : Exception()
+sealed interface AuthException {
+    object Default : AuthException, Exception("Failed to connect to auth service")
+}
