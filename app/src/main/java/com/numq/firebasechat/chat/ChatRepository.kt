@@ -29,22 +29,22 @@ interface ChatRepository {
         override suspend fun getChats(userId: String, lastChatId: String?, limit: Long) =
             chatService.getChats(userId, lastChatId, limit)
                 .wrap()
-                .leftIfNull { ChatException }
+                .leftIfNull { ChatException.Default }
 
         override suspend fun getChatById(id: String) =
             chatService.getChatById(id)
                 .wrapIf(networkService.isAvailable, NetworkException.Default)
-                .leftIfNull { ChatException }
+                .leftIfNull { ChatException.Default }
 
         override suspend fun createChat(userId: String, anotherId: String) =
             chatService.createChat(userId, anotherId)
                 .wrapIf(networkService.isAvailable, NetworkException.Default)
-                .leftIfNull { ChatException }
+                .leftIfNull { ChatException.Default }
 
         override suspend fun updateChat(chat: Chat) =
             chatService.updateChat(chat)
                 .wrapIf(networkService.isAvailable, NetworkException.Default)
-                .leftIfNull { ChatException }
+                .leftIfNull { ChatException.Default }
 
         override suspend fun deleteChat(id: String) =
             chatService.deleteChat(id)

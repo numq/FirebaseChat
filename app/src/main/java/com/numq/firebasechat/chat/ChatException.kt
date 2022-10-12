@@ -1,3 +1,5 @@
 package com.numq.firebasechat.chat
 
-object ChatException : Exception()
+sealed interface ChatException {
+    object Default : ChatException, Exception("Failed to connect to chat service")
+}
