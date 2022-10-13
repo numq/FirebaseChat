@@ -38,23 +38,23 @@ class MessageRepositoryTest {
     @Test
     fun `should return latest messages`() = runBlocking {
         val (chatId, limit) = Pair("test", 10L)
-        val input = arrayOfNulls<Message>(10)
+        val messages = arrayOfNulls<Message>(10)
             .mapIndexed { idx, _ -> Message(id = "$idx", chatId = chatId) }.asFlow()
-        every { messageService.getLatestMessages(any(), any()) } returns input
+        every { messageService.getLatestMessages(any(), any()) } returns messages
 
         val output = repository.getLatestMessages(chatId, limit)
-        assertEquals(input.right(), output)
+        assertEquals(messages.right(), output)
     }
 
     @Test
     fun `should return messages`() = runBlocking {
         val (chatId, lastMessageId, limit) = Triple("test", "test", 10L)
-        val input = arrayOfNulls<Message>(10)
+        val messages = arrayOfNulls<Message>(10)
             .mapIndexed { idx, _ -> Message(id = "$idx", chatId = chatId) }
-        every { messageService.getMessages(any(), any(), any()) } returns Tasks.forResult(input)
+        every { messageService.getMessages(any(), any(), any()) } returns Tasks.forResult(messages)
 
         val output = repository.getMessages(chatId, lastMessageId, limit)
-        assertEquals(input.right(), output)
+        assertEquals(messages.right(), output)
     }
 
     @Test
