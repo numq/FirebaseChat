@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 interface AuthRepository {
+
     suspend fun getAuthenticationState(): Either<Exception, Flow<AuthenticationState>>
     suspend fun signInByEmail(
         email: String,

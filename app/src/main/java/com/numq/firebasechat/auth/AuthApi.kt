@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 interface AuthApi {
+
     fun getAuthenticationState(): Flow<AuthenticationState>
     fun signInByEmail(email: String, password: String): Boolean
     fun signUpByEmail(
