@@ -4,7 +4,6 @@ import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
 import com.numq.firebasechat.auth.AuthException
 import com.numq.firebasechat.mapper.user
@@ -19,7 +18,6 @@ import javax.inject.Inject
 
 interface UserApi {
 
-    fun getUsersByQuery(query: String, limit: Long): Flow<User>
     fun getUserById(id: String): Flow<User>?
     fun createUser(id: String, name: String, email: String): Task<User>
     fun updateUserActivity(id: String, state: Boolean): Task<Void>
@@ -43,24 +41,6 @@ interface UserApi {
         }
 
         private val collection = firestore.collection(USERS)
-
-        override fun getUsersByQuery(query: String, limit: Long) = callbackFlow {
-            val subscription = collection.whereEqualTo("email", query)
-                .orderBy("lastSeenAt", Query.Direction.DESCENDING)
-                .limit(limit).addSnapshotListener { value, error ->
-                    error?.let { close(error) }
-                    coroutineScope.launch {
-                        value?.documents?.forEach {
-                            it.user?.let { user ->
-                                send(user)
-                            }
-                        }
-                    }
-                }
-            awaitClose {
-                subscription.remove()
-            }
-        }
 
         override fun getUserById(id: String) = callbackFlow {
             val subscription = collection.document(id).addSnapshotListener { value, error ->
@@ -91,7 +71,7 @@ interface UserApi {
                 collection.document(id).get().onSuccessTask {
                     it.user?.let { user ->
                         Tasks.forResult(user)
-                    } ?: Tasks.forException(Exception(AuthException))
+                    } ?: Tasks.forException(Exception(AuthException.Default))
                 }
             }
 

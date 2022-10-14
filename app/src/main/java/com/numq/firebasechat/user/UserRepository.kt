@@ -12,7 +12,6 @@ import javax.inject.Inject
 
 interface UserRepository {
 
-    suspend fun getUsersByQuery(query: String, limit: Long): Either<Exception, Flow<User>>
     suspend fun getUserById(id: String): Either<Exception, Flow<User>>
     suspend fun uploadImage(id: String, bytes: ByteArray): Either<Exception, User>
     suspend fun updateName(id: String, name: String): Either<Exception, User>
@@ -25,40 +24,35 @@ interface UserRepository {
         private val userService: UserApi
     ) : UserRepository {
 
-        override suspend fun getUsersByQuery(query: String, limit: Long) =
-            userService.getUsersByQuery(query, limit)
-                .wrap()
-                .leftIfNull { UserException }
-
         override suspend fun getUserById(id: String) =
             userService.getUserById(id)
                 .wrap()
-                .leftIfNull { UserException }
+                .leftIfNull { UserException.Default }
 
         override suspend fun uploadImage(id: String, bytes: ByteArray) =
             userService.uploadImage(id, bytes)
                 .wrapIf(networkService.isAvailable, NetworkException.Default)
-                .leftIfNull { UserException }
+                .leftIfNull { UserException.Default }
 
         override suspend fun updateName(id: String, name: String) =
             userService.updateName(id, name)
                 .wrapIf(networkService.isAvailable, NetworkException.Default)
-                .leftIfNull { UserException }
+                .leftIfNull { UserException.Default }
 
         override suspend fun updateEmail(id: String, email: String) =
             userService.updateEmail(id, email)
                 .wrapIf(networkService.isAvailable, NetworkException.Default)
-                .leftIfNull { UserException }
+                .leftIfNull { UserException.Default }
 
         override suspend fun changePassword(id: String, password: String) =
             userService.changePassword(id, password)
                 ?.wrapIf(networkService.isAvailable, NetworkException.Default)
-                ?.leftIfNull { UserException } ?: UserException.left()
+                ?.leftIfNull { UserException.Default } ?: UserException.Default.left()
 
         override suspend fun deleteUser(id: String) =
             userService.deleteUser(id)
                 .wrapIf(networkService.isAvailable, NetworkException.Default)
-                .leftIfNull { UserException }
+                .leftIfNull { UserException.Default }
 
     }
 

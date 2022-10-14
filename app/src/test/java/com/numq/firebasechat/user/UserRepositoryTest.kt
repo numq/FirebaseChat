@@ -6,7 +6,6 @@ import com.numq.firebasechat.network.NetworkApi
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -31,24 +30,13 @@ class UserRepositoryTest {
     }
 
     @Test
-    fun `should return flow of users by query`() = runBlocking {
-        val (query, limit) = Pair("test", 10L)
-        val input = arrayOfNulls<User>(10)
-            .mapIndexed { idx, _ -> User(id = "$idx") }.asFlow()
-        every { userService.getUsersByQuery(any(), any()) } returns input
-
-        val output = repository.getUsersByQuery(query, limit)
-        assertEquals(input.right(), output)
-    }
-
-    @Test
     fun `should return flow that contains single user`() = runBlocking {
         val id = "test"
-        val input = flowOf(User(id))
-        every { userService.getUserById(any()) } returns input
+        val users = flowOf(User(id))
+        every { userService.getUserById(any()) } returns users
 
         val output = repository.getUserById(id)
-        assertEquals(input.right(), output)
+        assertEquals(users.right(), output)
     }
 
     @Test
