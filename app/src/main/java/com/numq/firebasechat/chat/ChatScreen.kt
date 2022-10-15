@@ -125,8 +125,10 @@ fun BuildChat(
                     )
                 }.forEach { (_, list) ->
                     items(list) { message ->
-                        LaunchedEffect(!message.read && message.senderId != user.id) {
-                            readMessage(message.id)
+                        SideEffect {
+                            if (!message.read && message.senderId != user.id) {
+                                readMessage(message.id)
+                            }
                         }
                         MessageChatItem(user, message)
                     }
